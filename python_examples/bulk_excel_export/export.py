@@ -79,7 +79,7 @@ TAG_COLUMNS = [
 ]
 
 
-def retireve_ecosystem():
+def retrieve_ecosystem():
     api = os.environ.get('CYBERGRX_BULK_API', "https://api.cybergrx.com").rstrip("/")
     token = os.environ.get('CYBERGRX_API_TOKEN', None)
     if not token:
@@ -125,4 +125,4 @@ def retireve_ecosystem():
 
 
 if __name__ == '__main__':
-    retireve_ecosystem()
+    retrieve_ecosystem()
