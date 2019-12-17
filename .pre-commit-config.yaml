@@ -1,0 +1,20 @@
+- repo: git://github.com/pre-commit/pre-commit-hooks
+  sha: v1.2.3
+  hooks:
+    - id: check-json
+      stages: [commit]
+    - id: trailing-whitespace
+      stages: [commit]
+    - id: check-merge-conflict
+      stages: [commit]
+    - id: debug-statements
+      stages: [commit]
+    - id: end-of-file-fixer
+      stages: [commit]
+    - id: check-ast
+      stages: [commit]
+-   repo: https://github.com/pre-commit/mirrors-yapf
+    sha: 'v0.23.0'  # Use the sha / tag you want to point at
+    hooks:
+    -   id: yapf
+        stages: [commit]
