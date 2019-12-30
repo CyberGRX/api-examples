@@ -11,7 +11,7 @@ At this point you are all setup to run the example, but before you do, create a 
 - `vi .auth-token` add the following line to this file and save it `export CYBERGRX_API_TOKEN="API-V1 TOKEN FROM UI"`
 
 Once that is done you can source that file into your environment and run the export
-- Remember to source your python environment `source env/bin/activate` the first time you run the export
+- Remember to source your python environment `source env/bin/activate` the first time you run the command
 - `source .auth-token`
 - `python export.py`
 - Open `ecosystem.json` this is the raw payload directly form the API
