@@ -10,6 +10,8 @@ This example uses tagging conventions to map tagging values to specific columns 
 ## Technical details for mapping
 Mapping is pretty trivial, we are using glom as a foundational driver to transform API responses into a standardized format for the Excel template.  There are 3 configurations that set that glom state.  Basically we select the tags field from the Third Party response (this is an array of strings), pass that through the tag_categorization filter which only selects tags that start with a prefix.
 
+The following snips are from [export.py](./export.py) and capture the business logic for mapping tags with a specific prefix to a field that can be interpreted by the Excel template.
+
 ```
 def tag_categorization(tagging_prefix):
     return lambda value: ", ".join([v.replace(tagging_prefix, "", 1).strip() for v in value if v.startswith(tagging_prefix)])
