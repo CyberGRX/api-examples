@@ -3,8 +3,24 @@ This example application showcases the abilility to export an ecosystem and map 
 # Tagging formats
 This example uses tagging conventions to map tagging values to specific columns within the export.  By using tags to manage these details we can still filter and sort using the CyberGRX user interface, addiitonally we can build standardized exports that we can sync into a GRC tool of our choosing.  Tagging conventions are as follows:
 - Tags starting with `BU:` are mapped to the column `Business Unit`
-- Tags starting with `RM:` are mapped to the column `Relationship Manager`
+- Tags starting with `VO:` are mapped to the column `Vendor Owner`
+- Tags starting with `REG:` are mapped to the column `Regulation`
 - All other tags are treated as normal
+
+## Technical details for mapping
+Mapping is pretty trivial, we are using glom as a foundational driver to transform API responses into a standardized format for the Excel template.  There are 3 configurations that set that glom state.  Basically we select the tags field from the Third Party response (this is an array of strings), pass that through the tag_categorization filter which only selects tags that start with a prefix.
+
+```
+def tag_categorization(tagging_prefix):
+    return lambda value: ", ".join([v.replace(tagging_prefix, "", 1).strip() for v in value if v.startswith(tagging_prefix)])
+
+TP_MAPPING = {
+    ...
+    "business_unit": (Coalesce("tags", default=[]), tag_categorization("BU:")),
+    "vendor_owner": (Coalesce("tags", default=[]), tag_categorization("VO:")),
+    "regulation": (Coalesce("tags", default=[]), tag_categorization("REG:")),
+}
+```
 
 # Running the example
 The first step is to configure a virtual environment for the application dependencies.  Depending on the version of Python that you are using the following commands will slightly differ.
