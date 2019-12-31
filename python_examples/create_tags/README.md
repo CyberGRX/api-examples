@@ -1,4 +1,4 @@
-This example application showcases the abilility to make changes to company tags in bulk using the [CyberGRX API](https://api.cybergrx.com/bulk-v1/swagger/).  This example is coded using Python, the integration code is contained in [apply_tags.py](./apply_tags.py).  You should run all commands from this directory.
+This example application showcases the abilility to make changes to company tags in bulk using the [CyberGRX API](https://api.cybergrx.com/v1/swagger/).  This example is coded using Python, the integration code is contained in [apply_tags.py](./apply_tags.py).  You should run all commands from this directory.
 
 # Running the example
 The first step is to configure a virtual environment for the application dependencies.  Depending on the version of Python that you are using the following commands will slightly differ.
