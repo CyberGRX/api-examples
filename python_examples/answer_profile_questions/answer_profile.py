@@ -61,7 +61,7 @@ COMPANY_SCHEMA = {
 @click.command()
 @click.option('--sheet', help='What sheet are we processing in the excel file?', required=False, default="Third Parties")
 @click.argument('filename', required=False, default="profile-answers.xlsx")
-def create_tags(sheet, filename):
+def answer_scoping_profile(sheet, filename):
     api = os.environ.get('CYBERGRX_API', "https://api.cybergrx.com").rstrip("/")
     token = os.environ.get('CYBERGRX_API_TOKEN', None)
     if not token:
@@ -87,4 +87,4 @@ def create_tags(sheet, filename):
                 print(response.content)
 
 if __name__ == '__main__':
-    create_tags()
+    answer_scoping_profile()
