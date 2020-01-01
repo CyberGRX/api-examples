@@ -1,3 +1,9 @@
+# API Integrations
+Some sample integrations with the [CyberGRX API](https://api.cybergrx.com/v1/swagger/).
+
+## Integrations
+- [Answer vendor inherent risk profile questions](./answer_profile_questions/README.md)
+
 # Bulk API Integrations
 Some sample integrations with the [CyberGRX Bulk API](https://api.cybergrx.com/bulk-v1/swagger/).  These integrations by default use the production API, if you are developing locally you can the environmental parameter `CYBERGRX_BULK_API=https://hostname-of-bulk-connector` to target a custom endpoint.
 
@@ -6,3 +12,4 @@ These bulk examples pull an entire ecosystem with a single API request.  This en
 ## Integrations
 - [Bulk export to an Excel file](./bulk_excel_export/README.md)
 - [Bulk export to a XML file](./bulk_xml_export/README.md)
+- [Export an ecosystem with columns populated via tagging conventions](./excel_export_mapped_tags/README.md)

@@ -18,5 +18,6 @@ Language specific examples are detailed below.
 
 ## Python Examples
 Jump over to the [Python examples folder](./python_examples/README.md) and take a deeper look, some highlights:
+- [Answer vendor inherent risk profile questions](./python_examples/answer_profile_questions/README.md)
 - [Bulk export to an Excel file](./python_examples/bulk_excel_export/README.md)
 - [Bulk export to a XML file](./python_examples/bulk_xml_export/README.md)
