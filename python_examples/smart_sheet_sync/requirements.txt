@@ -1,0 +1,9 @@
+-e .
+
+click==7.0
+requests==2.20.0
+openpyxl==2.6.2
+glom==18.1.1
+smartsheet-python-sdk==2.86.0
+stringcase==1.2.0
+tqdm==4.19.8
