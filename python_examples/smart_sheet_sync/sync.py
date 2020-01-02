@@ -16,28 +16,10 @@ import smartsheet
 import stringcase
 from openpyxl import Workbook, load_workbook
 from tqdm import tqdm
-from utils import split, normalize_vendor, lookup_sheet_id, skip_falsy, insert_http
+from utils import split, normalize_vendor, lookup_sheet_id, skip_falsy, insert_http, validate_answer
 from glom import glom, Coalesce, OMIT
 
 import click
-
-VALID_ANSWERS = {
-    "least": "Least",
-    "minimal": "Minimal",
-    "moderate": "Moderate",
-    "significant": "Significant",
-}
-
-def validate_answer(value):
-    if not value:
-        return OMIT
-
-    normalized = str(value).strip().lower()
-    for key in VALID_ANSWERS.keys():
-        if normalized.startswith(key):
-            return VALID_ANSWERS[key]
-
-    return OMIT
 
 HEADER_MAPPING = {
     "Vendor Name": "company_name",
@@ -204,7 +186,6 @@ def process_matched_vendors(matched_vendors, token, sheet_id, api, smart):
 
         row_updates.append(row_update)
         
-    print(row_updates)
     smart.Sheets.update_rows(sheet_id, row_updates)
 
 
@@ -234,7 +215,7 @@ def sync_smart_sheet(sheet_name, sheet_id, filename):
 
     # Load the entire sheet
     sheet = smart.Sheets.get_sheet(sheet_id)
-    print("Loaded " + str(len(sheet.rows)) + " rows from sheet: " + sheet.name)
+    print("Loaded " + str(len(sheet.rows)) + " vendors from sheet: " + sheet.name)
 
     # Build column map for later reference - translates column names to smart sheet column ids
     for column in sheet.columns:
@@ -262,6 +243,7 @@ def sync_smart_sheet(sheet_name, sheet_id, filename):
         print("There are vendors in smart sheet that need to be migrated to CyberGRX")
         process_missing_vendors(missing_vendors, token, api)
 
+    # Associate smart sheet vendors with CyberGRX records
     grx_vendor_map = {vendor["custom_id"]: vendor for vendor in grx_vendors}
     matched_vendors = [vendor for vendor in smart_sheet_vendors if vendor["custom_id"] in grx_custom_ids]
     for vendor in matched_vendors:

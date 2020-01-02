@@ -21,6 +21,14 @@ from tqdm import tqdm
 from glom import glom, OMIT
 
 
+VALID_ANSWERS = {
+    "least": "Least",
+    "minimal": "Minimal",
+    "moderate": "Moderate",
+    "significant": "Significant",
+}
+
+
 def skip_falsy(value): 
     return OMIT if not value else value
 
@@ -61,29 +69,13 @@ def split(index):
     return splitter
 
 
+def validate_answer(value):
+    if not value:
+        return OMIT
 
-def process_companies(sheet, header_mapping, normalization):
-    companies = []
-    headers = {}
-    for index, row in enumerate(sheet.iter_rows()):
-        if not headers:
-            headers = columns_for_headers(row, header_mapping)
-        else:
-            company = OrderedDict()
-            for column_index, col in enumerate(row):
-                if column_index not in headers:
-                    continue
+    normalized = str(value).strip().lower()
+    for key in VALID_ANSWERS.keys():
+        if normalized.startswith(key):
+            return VALID_ANSWERS[key]
 
-                if col.value is not None:
-                    try:
-                        company[headers[column_index]] = bytearray(col.value, 'utf-8').decode("utf-8")
-                    except:
-                        company[headers[column_index]] = col.value
-
-            company = glom(company, normalization, default=None)
-            if not company:
-                continue
-            
-            companies.append(company)
-
-    return companies
+    return OMIT
