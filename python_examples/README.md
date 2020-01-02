@@ -2,6 +2,7 @@
 Some sample integrations with the [CyberGRX API](https://api.cybergrx.com/v1/swagger/).
 
 ## Integrations
+- [SmartSheet as GRC integrated with CyberGRX](./smart_sheet_sync/README.md)
 - [Answer vendor inherent risk profile questions](./answer_profile_questions/README.md)
 
 # Bulk API Integrations
