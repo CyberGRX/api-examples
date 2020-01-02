@@ -23,7 +23,7 @@ install_requires = requirements('requirements.txt')
 
 setup(
     name='bulk-api-xml-export',
-    url='https://github.com/CyberGRX//api-examples/tree/master/python_examples/bulk_xml_export',
+    url='https://github.com/CyberGRX/api-examples/tree/master/python_examples/bulk_xml_export',
     author='CyberGRX Engineering Team',
     author_email='engineers@cybergrx.com',
     version="1.0.0",

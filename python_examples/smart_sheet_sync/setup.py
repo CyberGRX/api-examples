@@ -21,7 +21,7 @@ install_requires = requirements('requirements.txt')
 
 setup(
     name='api-smart-sheet-sync',
-    url='https://github.com/CyberGRX//api-examples/tree/master/python_examples/smart_sheet_sync',
+    url='https://github.com/CyberGRX/api-examples/tree/master/python_examples/smart_sheet_sync',
     author='CyberGRX Engineering Team',
     author_email='engineers@cybergrx.com',
     version="1.0.0",
