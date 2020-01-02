@@ -10,7 +10,7 @@ The first step is to configure a virtual environment for the application depende
 At this point you are all setup to run the example, but before you do, create a file that holds your API token. 
 - `vi .auth-token` add the following line to this file and save it `export CYBERGRX_API_TOKEN="API-V1 TOKEN FROM UI"`
 
-Once that is done you can source that file into your environment and run the apply_tags command
+Once that is done you can source that file into your environment and run the command
 - Remember to source your python environment `source env/bin/activate` the first time you run the command
 - `source .auth-token`
 - This example command assumes that you have a profile-answers.xlsx file containing a list of companies with answers to the scoping profile.  Take a look at the profile-answers.xlsx file in this directory for an example.

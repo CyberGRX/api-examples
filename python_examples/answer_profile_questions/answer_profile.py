@@ -54,7 +54,6 @@ COMPANY_SCHEMA = {
     "networks": Coalesce(("networks", validate_answer), default=OMIT),
     "facilities": Coalesce(("facilities", validate_answer), default=OMIT),
     "business_process": Coalesce(("business_process", validate_answer), default=OMIT),
-
 }
 
 
@@ -71,7 +70,7 @@ def answer_scoping_profile(sheet, filename):
     companies = process_companies(wb[sheet], HEADER_MAPPING, COMPANY_SCHEMA)
 
     print("Detected " + str(len(companies)) + " companies with profile answers in " + filename)
-    for company in tqdm(companies, total=len(companies), desc="Third Party Tagging"):
+    for company in tqdm(companies, total=len(companies), desc="Third Party Profile"):
         company_name = company.pop("name")
         uri = api + "/v1/third-parties?limit=1&name=" + company_name
         
