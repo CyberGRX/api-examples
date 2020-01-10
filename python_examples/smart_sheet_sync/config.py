@@ -16,7 +16,7 @@ import smartsheet
 import stringcase
 from openpyxl import Workbook, load_workbook
 from tqdm import tqdm
-from utils import split, normalize_vendor, lookup_sheet_id, skip_falsy, insert_http, validate_answer
+from utils import split, normalize_vendor, lookup_sheet_id, skip_falsy, insert_http, validate_answer, date_or_none
 from glom import glom, Coalesce, OMIT
 
 import click
@@ -59,11 +59,16 @@ HEADER_MAPPING = {
     # CyberGRX Risk Analysis
     "Impact": "impact",
     "Likelihood": "likelihood",
+
+    # GRX Ingest Date
+    "Ingest Date": "ingest_date",
 }
 
 COMPANY_SCHEMA = {
     "name": "company_name",
     "url": ("company_url", insert_http),
+
+    "ingest_date": (Coalesce("ingest_date", default=None), date_or_none),
 
     "address": {
         "city": "address_city",

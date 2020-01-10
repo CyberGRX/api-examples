@@ -11,6 +11,7 @@
 import os
 import json
 import requests
+from datetime import datetime
 from collections import OrderedDict
 from openpyxl import Workbook
 from openpyxl.styles.fills import FILL_SOLID
@@ -29,11 +30,11 @@ VALID_ANSWERS = {
 }
 
 
-def skip_falsy(value): 
+def skip_falsy(value):
     return OMIT if not value else value
 
 
-def insert_http(value): 
+def insert_http(value):
     if not value.startswith("http"):
         return "https://" + value
 
@@ -50,7 +51,9 @@ def lookup_sheet_id(smart, sheet_name):
     response = smart.Sheets.list_sheets(include_all=True)
     matched_sheets = [sheet for sheet in response.data if sheet.name.lower() == sheet_name.lower()]
     if len(matched_sheets) != 1:
-        message = "Unable to lookup a unique sheet ID, multiple sheets matched '" + sheet_name + "' set --sheet-id instead"
+        message = (
+            "Unable to lookup a unique sheet ID, multiple sheets matched '" + sheet_name + "' set --sheet-id instead"
+        )
         raise Exception(message)
 
     return matched_sheets[0].id
@@ -60,7 +63,7 @@ def split(index):
     def splitter(value):
         if not value:
             return OMIT
-        
+
         try:
             return value.split(" ")[index]
         except:
@@ -79,3 +82,7 @@ def validate_answer(value):
             return VALID_ANSWERS[key]
 
     return OMIT
+
+
+def date_or_none(value):
+    return datetime.strptime(value, '%Y-%m-%d') if value else None
