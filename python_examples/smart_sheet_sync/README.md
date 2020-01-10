@@ -25,7 +25,7 @@ This command will sync new companies to CyberGRX, it will also apply scoping pro
 - `python sync.py sync-smart-sheet --sheet-name="Name of sheet"`
 - `python sync.py sync-smart-sheet --sheet-id="ID of sheet"`
 
-## Bulk import template
+## Bulk import request
 To make initial data curation easier on the CyberGRX team, it is recommended that you initially create a bulk import request from your smart sheet.  This command will generate an Excel file containing all the vendors that are not present in your CyberGRX ecosystem.  Simply generate this bulk-ingest-request and then upload the resulting Excel file to the bulk import utility on the platform.
 - `python sync.py bulk-import-request --sheet-name="Name of sheet"`
 - `python sync.py bulk-import-request --sheet-id="ID of sheet"`
