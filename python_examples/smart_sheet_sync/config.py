@@ -68,6 +68,7 @@ COMPANY_SCHEMA = {
     "name": "company_name",
     "url": ("company_url", insert_http),
 
+    "custom_id": "custom_id",
     "ingest_date": (Coalesce("ingest_date", default=None), date_or_none),
 
     "address": {

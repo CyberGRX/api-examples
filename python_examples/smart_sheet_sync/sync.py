@@ -261,12 +261,25 @@ def bulk_import_request(sheet_name, sheet_id):
     # Load all vendors from smart sheet
     smart_sheet_vendors = [row_to_vendor(vendor, HEADER_MAPPING) for vendor in sheet.rows]
 
+    # Load all third parties skipping residual risk
+    uri = api + "/bulk-v1/third-parties?skip_residual_risk=true"
+    print("Fetching third parties from " + uri + " this can take some time.")
+    response = requests.get(uri, headers={"Authorization": token.strip()})
+    grx_vendors = glom(json.loads(response.content.decode("utf-8")), ([GRX_COMPANY_SCHEMA]))
+    grx_custom_ids = set([v["custom_id"] for v in grx_vendors if v["custom_id"]])
+
+    # See which vendors in smart sheets do not have a corresponding custom_id in CyberGRX
+    missing_vendors = [vendor for vendor in smart_sheet_vendors if vendor["custom_id"] not in grx_custom_ids]
+    if not missing_vendors:
+        print("There are no vendors that need to be migrated to CyberGRX")
+        return
+
     wb = Workbook()
     wb["Sheet"].title = "Third Party Information"
     vendor_writer = sheet_writer(wb, "Third Party Information", BULK_IMPORT_COLUMNS)
 
-    for tp in tqdm(smart_sheet_vendors, total=len(smart_sheet_vendors), desc="Vendor"):
-        vendor_writer(tp)
+    for vendor in tqdm(missing_vendors, total=len(missing_vendors), desc="Vendor"):
+        vendor_writer(vendor)
 
     # Finalize each writer (fix width, ETC)
     vendor_writer.finalizer()

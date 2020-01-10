@@ -42,13 +42,13 @@ def insert_http(value):
 
 
 def row_to_vendor(row, column_mapping):
-    return {column_mapping[cell.column_id]: cell.value for cell in row.cells}
+    vendor = {column_mapping[cell.column_id]: cell.value for cell in row.cells}
+    vendor["custom_id"] = str(row.id)
+    return vendor
 
 
 def normalize_vendor(row, column_mapping, spec):
-    normalized = glom(row_to_vendor(row, column_mapping), spec)
-    normalized["custom_id"] = str(row.id)
-    return normalized
+    return glom(row_to_vendor(row, column_mapping), spec)
 
 
 def lookup_sheet_id(smart, sheet_name):
