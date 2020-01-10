@@ -117,3 +117,10 @@ GRX_COMPANY_SCHEMA = {
     "impact": "inherent_risk.impact_label",
     "likelihood": "inherent_risk.likelihood_label",
 }
+
+BULK_IMPORT_COLUMNS = [
+    ["Third Party Legal or DBA Name", "company_name", "blue"],
+    ["Website Name URL", "company_url", "blue"],
+    ["Third Party HQ City", "address_city"],
+    #["Third Party HQ Country", "address_country"],
+]

@@ -17,8 +17,17 @@ import stringcase
 from datetime import datetime, timedelta
 from openpyxl import Workbook, load_workbook
 from tqdm import tqdm
-from utils import split, normalize_vendor, lookup_sheet_id, skip_falsy, insert_http, validate_answer
-from config import HEADER_MAPPING, COMPANY_SCHEMA, GRX_COMPANY_SCHEMA
+from utils import (
+    split,
+    normalize_vendor,
+    lookup_sheet_id,
+    skip_falsy,
+    insert_http,
+    validate_answer,
+    sheet_writer,
+    row_to_vendor,
+)
+from config import HEADER_MAPPING, COMPANY_SCHEMA, GRX_COMPANY_SCHEMA, BULK_IMPORT_COLUMNS
 from glom import glom, Coalesce, OMIT
 
 import click
@@ -31,9 +40,7 @@ def process_newly_matched_vendor(missing, matches, token, api):
 
     # Found one company in CyberGRX that does not have a custom_id, link these records up
     uri = api + glom(matches, "0.uri") + "/custom-id"
-    response = requests.put(
-        uri, headers={"Authorization": token.strip()}, json={"custom_id": missing["custom_id"]}
-    )
+    response = requests.put(uri, headers={"Authorization": token.strip()}, json={"custom_id": missing["custom_id"]})
     if response.status_code != 200:
         print("Error submitting custom_id for " + missing["name"])
         print(response.content)
@@ -76,12 +83,12 @@ def process_missing_vendors(missing_vendors, token, api, sheet_id, smart):
 
         if len(matches) == 1:
             # Found a single match within the CyberGRX ecosystem that has not been linked back to SmartSheets
-            process_newly_matched_vendor(missing, matches,token, api)
+            process_newly_matched_vendor(missing, matches, token, api)
             continue
 
         if not matches:
             # This company must be added to the CyberGRX ecosystem
-            
+
             ingest_date = missing.pop("ingest_date")
             if ingest_date and ingest_date + timedelta(days=7) >= today:
                 # The record has been recently added to CyberGRX, skip it
@@ -95,7 +102,7 @@ def process_missing_vendors(missing_vendors, token, api, sheet_id, smart):
             else:
                 ingest_date_cell = smart.models.Cell()
                 ingest_date_cell.column_id = HEADER_MAPPING["Ingest Date"]
-                ingest_date_cell.value = today.strftime('%Y-%m-%d')
+                ingest_date_cell.value = today.strftime("%Y-%m-%d")
 
                 row_update = smart.models.Row()
                 row_update.id = int(missing["custom_id"])
@@ -148,8 +155,7 @@ def process_matched_vendors(matched_vendors, token, sheet_id, api, smart):
 @click.command()
 @click.option("--sheet-name", help="Name of the sheet we are using", required=False)
 @click.option("--sheet-id", help="ID of the sheet we are using", required=False)
-@click.argument("filename", required=False, default="profile-answers.xlsx")
-def sync_smart_sheet(sheet_name, sheet_id, filename):
+def sync_smart_sheet(sheet_name, sheet_id):
     api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
     token = os.environ.get("CYBERGRX_API_TOKEN", None)
     if not token:
@@ -216,12 +222,64 @@ def sync_smart_sheet(sheet_name, sheet_id, filename):
         process_matched_vendors(matched_vendors, token, sheet_id, api, smart)
 
 
+@click.command()
+@click.option("--sheet-name", help="Name of the sheet we are using", required=False)
+@click.option("--sheet-id", help="ID of the sheet we are using", required=False)
+def bulk_import_request(sheet_name, sheet_id):
+    api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
+    token = os.environ.get("CYBERGRX_API_TOKEN", None)
+    if not token:
+        raise Exception("The environment variable CYBERGRX_API_TOKEN must be set")
+
+    if not os.environ.get("SMARTSHEET_ACCESS_TOKEN", None):
+        raise Exception("The environment variable SMARTSHEET_ACCESS_TOKEN must be set")
+
+    if not sheet_id and not sheet_name:
+        raise Exception("Either --sheet-name or --sheet-id must be provided")
+
+    smart = smartsheet.Smartsheet()
+    smart.errors_as_exceptions(True)
+
+    # If sheet_id was not provided, lookup the ID using the sheet name
+    if not sheet_id:
+        sheet_id = lookup_sheet_id(smart, sheet_name)
+
+    # Load the entire sheet
+    sheet = smart.Sheets.get_sheet(sheet_id)
+    print("Loaded " + str(len(sheet.rows)) + " vendors from sheet: " + sheet.name)
+
+    # Build column map for later reference - translates column names to smart sheet column ids
+    for column in sheet.columns:
+        if column.title in HEADER_MAPPING:
+            HEADER_MAPPING[column.id] = HEADER_MAPPING[column.title]
+            HEADER_MAPPING[column.title] = column.id
+        else:
+            snake_header = stringcase.snakecase(re.sub(r"[^0-9a-zA-Z]+", "", column.title))
+            HEADER_MAPPING[column.id] = snake_header
+            HEADER_MAPPING[snake_header] = column.id
+
+    # Load all vendors from smart sheet
+    smart_sheet_vendors = [row_to_vendor(vendor, HEADER_MAPPING) for vendor in sheet.rows]
+
+    wb = Workbook()
+    wb["Sheet"].title = "Third Party Information"
+    vendor_writer = sheet_writer(wb, "Third Party Information", BULK_IMPORT_COLUMNS)
+
+    for tp in tqdm(smart_sheet_vendors, total=len(smart_sheet_vendors), desc="Vendor"):
+        vendor_writer(tp)
+
+    # Finalize each writer (fix width, ETC)
+    vendor_writer.finalizer()
+    wb.save("bulk-import-request.xlsx")
+
+
 @click.group()
 def cli():
     pass
 
 
 cli.add_command(sync_smart_sheet)
+cli.add_command(bulk_import_request)
 
 
 if __name__ == "__main__":
