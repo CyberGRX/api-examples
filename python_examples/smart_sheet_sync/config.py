@@ -71,8 +71,9 @@ HEADER_MAPPING = {
     "Impact": "impact",
     "Likelihood": "likelihood",
 
-    # GRX Ingest Date
+    # GRX Metadata tracking from smart-sheets
     "Ingest Date": "ingest_date",
+    "GRX Vendor Name": "grx_vendor_name",
 }
 
 COMPANY_SCHEMA = {

@@ -134,18 +134,26 @@ def process_vendors_with_profile_updates(matched_vendors, token, api):
 def process_matched_vendors(matched_vendors, token, sheet_id, api, smart):
     row_updates = []
     for vendor in tqdm(matched_vendors, total=len(matched_vendors), desc="Compute risk updates"):
-        impact = smart.models.Cell()
-        impact.column_id = HEADER_MAPPING["Impact"]
-        impact.value = vendor["grx"]["impact"]
-
-        likelihood = smart.models.Cell()
-        likelihood.column_id = HEADER_MAPPING["Likelihood"]
-        likelihood.value = vendor["grx"]["likelihood"]
-
         row_update = smart.models.Row()
         row_update.id = int(vendor["custom_id"])
-        row_update.cells.append(impact)
-        row_update.cells.append(likelihood)
+
+        if HEADER_MAPPING["Impact"] != "impact": # If this column is present in the sheet it will be an ID not the field name
+            impact = smart.models.Cell()
+            impact.column_id = HEADER_MAPPING["Impact"]
+            impact.value = vendor["grx"]["impact"]
+            row_update.cells.append(impact)
+
+        if HEADER_MAPPING["Likelihood"] != "likelihood": # If this column is present in the sheet it will be an ID not the field name
+            likelihood = smart.models.Cell()
+            likelihood.column_id = HEADER_MAPPING["Likelihood"]
+            likelihood.value = vendor["grx"]["likelihood"]
+            row_update.cells.append(likelihood)
+
+        if HEADER_MAPPING["GRX Vendor Name"] != "grx_vendor_name": # If this column is present in the sheet it will be an ID not the field name
+            grx_vendor_name = smart.models.Cell()
+            grx_vendor_name.column_id = HEADER_MAPPING["GRX Vendor Name"]
+            grx_vendor_name.value = vendor["grx"]["name"]
+            row_update.cells.append(grx_vendor_name)
 
         row_updates.append(row_update)
 
