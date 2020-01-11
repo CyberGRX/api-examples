@@ -79,7 +79,7 @@ def split(last, spliton=" "):
         split = value.split(spliton)
         if len(split) < 2:
             raise GlomError("Value did not have 2 or more elements")
-        
+
         return split[-1] if last else split[0]
 
     return parser
@@ -99,7 +99,9 @@ def email_metadata(selector):
             if selector == "domain":
                 return parsed["domain"]
 
-            return (first_name(parsed["local"]) if selector == "first_name" else last_name(parsed["local"])).capitalize()
+            return (
+                first_name(parsed["local"]) if selector == "first_name" else last_name(parsed["local"])
+            ).capitalize()
         except EmailNotValidError as e:
             raise GlomError(str(e))
 
