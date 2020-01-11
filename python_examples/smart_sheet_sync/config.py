@@ -16,7 +16,7 @@ import smartsheet
 import stringcase
 from openpyxl import Workbook, load_workbook
 from tqdm import tqdm
-from utils import split, normalize_vendor, lookup_sheet_id, skip_falsy, insert_http, validate_answer, date_or_none
+from utils import split, normalize_vendor, lookup_sheet_id, skip_falsy, insert_http, validate_answer, date_or_none, email_metadata, required
 from glom import glom, Coalesce, OMIT
 
 import click
@@ -66,7 +66,8 @@ HEADER_MAPPING = {
 
 COMPANY_SCHEMA = {
     "name": "company_name",
-    "url": ("company_url", insert_http),
+    # Prefer the company domain from the spread sheet, fallback to using the email address's domain
+    "url": (Coalesce(("company_url", required), ("third_party_contact_email", email_metadata("domain"))), required, insert_http),
 
     "custom_id": "custom_id",
     "ingest_date": (Coalesce("ingest_date", default=None), date_or_none),
@@ -76,8 +77,9 @@ COMPANY_SCHEMA = {
     },
 
     "third_party_contact": {
-        "first_name": Coalesce(("third_party_contact_name", split(0), skip_falsy), default=OMIT),
-        "last_name": Coalesce(("third_party_contact_name", split(1), skip_falsy), default=OMIT),
+        # Prefer the first and last name from the spread sheet, fallback to using the email address
+        "first_name": (Coalesce(("third_party_contact_name", split(False)), ("third_party_contact_email", email_metadata("first_name")), default=OMIT), skip_falsy),
+        "last_name": (Coalesce(("third_party_contact_name", split(True)), ("third_party_contact_email", email_metadata("last_name")), default=OMIT), skip_falsy),
         "email": Coalesce(("third_party_contact_email", skip_falsy), default=OMIT),
         "phone": Coalesce(("third_party_contact_phone", skip_falsy), default=OMIT),
     },
