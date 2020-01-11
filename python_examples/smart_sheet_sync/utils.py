@@ -31,10 +31,10 @@ VALID_ANSWERS = {
 }
 
 VALID_ASSESSMENT_TIERS = {
-    "tier 1": {"tier": 1, "validated": True}, # Tier 1 is always validated
+    "tier 1": {"tier": 1, "validated": True},  # Tier 1 is always validated
     "tier 2": {"tier": 2, "validated": False},
     "tier 2 validated": {"tier": 2, "validated": True},
-    "tier 3": {"tier": 3, "validated": False}, # Tier 3 is never validated
+    "tier 3": {"tier": 3, "validated": False},  # Tier 3 is never validated
     "no assessment": None,
 }
 

@@ -175,7 +175,11 @@ def process_matched_vendors(matched_vendors, token, sheet_id, api, smart):
 @click.command()
 @click.option("--sheet-name", help="Name of the sheet we are using", required=False)
 @click.option("--sheet-id", help="ID of the sheet we are using", required=False)
-@click.option('--skip-rows-without-orders', help="Do not submit rows to CyberGRX that do not have a valid 'Order Assessment Tier'", is_flag=True)
+@click.option(
+    "--skip-rows-without-orders",
+    help="Do not submit rows to CyberGRX that do not have a valid 'Order Assessment Tier'",
+    is_flag=True,
+)
 def sync_smart_sheet(sheet_name, sheet_id, skip_rows_without_orders):
     api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
     token = os.environ.get("CYBERGRX_API_TOKEN", None)
@@ -246,7 +250,11 @@ def sync_smart_sheet(sheet_name, sheet_id, skip_rows_without_orders):
 @click.command()
 @click.option("--sheet-name", help="Name of the sheet we are using", required=False)
 @click.option("--sheet-id", help="ID of the sheet we are using", required=False)
-@click.option('--skip-rows-without-orders', help="Do not submit rows to CyberGRX that do not have a valid 'Order Assessment Tier'", is_flag=True)
+@click.option(
+    "--skip-rows-without-orders",
+    help="Do not submit rows to CyberGRX that do not have a valid 'Order Assessment Tier'",
+    is_flag=True,
+)
 def bulk_import_request(sheet_name, sheet_id, skip_rows_without_orders):
     api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
     token = os.environ.get("CYBERGRX_API_TOKEN", None)
