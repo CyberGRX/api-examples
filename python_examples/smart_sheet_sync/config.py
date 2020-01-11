@@ -26,6 +26,7 @@ from utils import (
     date_or_none,
     email_metadata,
     required,
+    valid_assessment_order,
 )
 from glom import glom, Coalesce, OMIT
 
@@ -48,6 +49,9 @@ HEADER_MAPPING = {
     "Vendor Contact Name": "third_party_contact_name",
     "Vendor Contact Email": "third_party_contact_email",
     "Vendor Contact Phone": "third_party_contact_phone",
+
+    # Assessment Order Info
+    "Order Assessment Tier": "assessment_order",
 
     # Cyber classification metadata
     "Critical/Support": "meta_is_critical_or_support",
@@ -87,56 +91,79 @@ COMPANY_SCHEMA = {
     ),
     "custom_id": "custom_id",
     "ingest_date": (Coalesce("ingest_date", default=None), date_or_none),
+
     "address": {
-        "city": "address_city",
+        "city": "address_city", 
         "country": "address_country",
     },
-    "third_party_contact": {
-        # Prefer the first and last name from the spread sheet, fallback to using the email address
-        "first_name": (
-            Coalesce(
-                ("third_party_contact_name", split(False)),
-                ("third_party_contact_email", email_metadata("first_name")),
-                default=OMIT,
+
+    # Map the assessment order column to a valid order request, skip this field if it is not present or invalid
+    "order_info": Coalesce(("assessment_order", valid_assessment_order), default=OMIT),
+
+    "third_party_contact": (
+        {
+            # Prefer the first and last name from the spread sheet, fallback to using the email address
+            "first_name": (
+                Coalesce(
+                    ("third_party_contact_name", split(False), required),
+                    ("third_party_contact_email", email_metadata("first_name")),
+                    default=OMIT,
+                ),
+                skip_falsy,
             ),
-            skip_falsy,
-        ),
-        "last_name": (
-            Coalesce(
-                ("third_party_contact_name", split(True)),
-                ("third_party_contact_email", email_metadata("last_name")),
-                default=OMIT,
+            "last_name": (
+                Coalesce(
+                    ("third_party_contact_name", split(True), required),
+                    ("third_party_contact_email", email_metadata("last_name")),
+                    default=OMIT,
+                ),
+                skip_falsy,
             ),
-            skip_falsy,
-        ),
-        "email": Coalesce(("third_party_contact_email", skip_falsy), default=OMIT),
-        "phone": Coalesce(("third_party_contact_phone", skip_falsy), default=OMIT),
-    },
-    "third_party_scoping": {
-        "digital_identities": Coalesce(("profile_digital_identities", validate_answer), default=OMIT),
-        "people": Coalesce(("profile_people", validate_answer), default=OMIT),
-        "data": Coalesce(("profile_data", validate_answer), default=OMIT),
-        "applications": Coalesce(("profile_applications", validate_answer), default=OMIT),
-        "devices": Coalesce(("profile_devices", validate_answer), default=OMIT),
-        "networks": Coalesce(("profile_networks", validate_answer), default=OMIT),
-        "facilities": Coalesce(("profile_facilities", validate_answer), default=OMIT),
-        "business_process": Coalesce(("profile_business_process", validate_answer), default=OMIT),
-    },
-    "custom_metadata": {
-        "internal": {
-            "owner": "internal_vendor_owner",
-            "description": "internal_description",
-            "location": "internal_description",
+            "email": Coalesce(("third_party_contact_email", skip_falsy), default=OMIT),
+            "phone": Coalesce(("third_party_contact_phone", skip_falsy), default=OMIT),
         },
-        "cyber_classification": {
-            "critical_or_support": "meta_is_critical_or_support",
-            "rto": "meta_rto",
-            "data_sensitivity": "meta_data_sensitivity",
-            "compliance": "meta_compliance",
-            "tech_risk": "meta_tech_risk",
-            "influence": "meta_influence",
+        skip_falsy,
+    ),
+
+    # If the row has answers, configure the scoping profile payload
+    "third_party_scoping": (
+        {
+            "digital_identities": Coalesce(("profile_digital_identities", validate_answer), default=OMIT),
+            "people": Coalesce(("profile_people", validate_answer), default=OMIT),
+            "data": Coalesce(("profile_data", validate_answer), default=OMIT),
+            "applications": Coalesce(("profile_applications", validate_answer), default=OMIT),
+            "devices": Coalesce(("profile_devices", validate_answer), default=OMIT),
+            "networks": Coalesce(("profile_networks", validate_answer), default=OMIT),
+            "facilities": Coalesce(("profile_facilities", validate_answer), default=OMIT),
+            "business_process": Coalesce(("profile_business_process", validate_answer), default=OMIT),
         },
-    },
+        skip_falsy,
+    ),
+
+    "custom_metadata": (
+        {
+            "internal": (
+                {
+                    "owner": ("internal_vendor_owner", skip_falsy),
+                    "description": ("internal_description", skip_falsy),
+                    "location": ("internal_description", skip_falsy),
+                },
+                skip_falsy,
+            ),
+            "cyber_classification": (
+                {
+                    "critical_or_support": ("meta_is_critical_or_support", skip_falsy),
+                    "rto": ("meta_rto", skip_falsy),
+                    "data_sensitivity": ("meta_data_sensitivity", skip_falsy),
+                    "compliance": ("meta_compliance", skip_falsy),
+                    "tech_risk": ("meta_tech_risk", skip_falsy),
+                    "influence": ("meta_influence", skip_falsy),
+                },
+                skip_falsy,
+            ),
+        },
+        skip_falsy,
+    ),
 }
 
 GRX_COMPANY_SCHEMA = {

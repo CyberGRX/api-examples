@@ -30,6 +30,14 @@ VALID_ANSWERS = {
     "significant": "Significant",
 }
 
+VALID_ASSESSMENT_TIERS = {
+    "tier 1": {"tier": 1, "validated": True}, # Tier 1 is always validated
+    "tier 2": {"tier": 2, "validated": False},
+    "tier 2 validated": {"tier": 2, "validated": True},
+    "tier 3": {"tier": 3, "validated": False}, # Tier 3 is never validated
+    "no assessment": None,
+}
+
 
 def skip_falsy(value):
     return OMIT if not value else value
@@ -118,6 +126,17 @@ def validate_answer(value):
             return VALID_ANSWERS[key]
 
     return OMIT
+
+
+def valid_assessment_order(value):
+    if not value:
+        return OMIT
+
+    normalized = str(value).strip().lower()
+    try:
+        return VALID_ASSESSMENT_TIERS[normalized]
+    except KeyError:
+        return OMIT
 
 
 def date_or_none(value):
