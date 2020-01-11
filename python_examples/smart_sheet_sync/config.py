@@ -37,6 +37,7 @@ HEADER_MAPPING = {
 
     # Address metadata (need at least a city to create a company)
     "Vendor HQ City": "address_city",
+    "Vendor HQ Country": "address_country",
 
     # Internal Metadata
     "Vendor Owner": "internal_vendor_owner",
@@ -87,6 +88,7 @@ COMPANY_SCHEMA = {
     "ingest_date": (Coalesce("ingest_date", default=None), date_or_none),
     "address": {
         "city": "address_city",
+        "country": "address_country",
     },
     "third_party_contact": {
         # Prefer the first and last name from the spread sheet, fallback to using the email address
@@ -149,5 +151,5 @@ BULK_IMPORT_COLUMNS = [
     ["Third Party Legal or DBA Name", "company_name", "blue"],
     ["Website Name URL", "company_url", "blue"],
     ["Third Party HQ City", "address_city"],
-    # ["Third Party HQ Country", "address_country"],
+    ["Third Party HQ Country", "address_country"],
 ]
