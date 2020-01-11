@@ -13,13 +13,14 @@ import json
 import requests
 from datetime import datetime
 from collections import OrderedDict
+from email_validator import validate_email, EmailNotValidError
 from openpyxl import Workbook
 from openpyxl.styles.fills import FILL_SOLID
 from openpyxl.styles import Color, PatternFill, Font, Border, Side
 from openpyxl.styles import colors
 from openpyxl.cell import Cell
 from tqdm import tqdm
-from glom import glom, OMIT
+from glom import glom, OMIT, GlomError
 
 
 VALID_ANSWERS = {
@@ -29,13 +30,21 @@ VALID_ANSWERS = {
     "significant": "Significant",
 }
 
+VALID_ASSESSMENT_TIERS = {
+    "tier 1": {"tier": 1, "validated": True},  # Tier 1 is always validated
+    "tier 2": {"tier": 2, "validated": False},
+    "tier 2 validated": {"tier": 2, "validated": True},
+    "tier 3": {"tier": 3, "validated": False},  # Tier 3 is never validated
+    "no assessment": None,
+}
+
 
 def skip_falsy(value):
     return OMIT if not value else value
 
 
 def insert_http(value):
-    if not value.startswith("http"):
+    if value and not value.startswith("http"):
         return "https://" + value
 
     return value
@@ -63,17 +72,48 @@ def lookup_sheet_id(smart, sheet_name):
     return matched_sheets[0].id
 
 
-def split(index):
-    def splitter(value):
+def required(value):
+    if not value:
+        raise GlomError("Value was not defined")
+
+    return value
+
+
+def split(last, spliton=" "):
+    def parser(value):
         if not value:
-            return OMIT
+            raise GlomError("Value was not defined")
+
+        split = value.split(spliton)
+        if len(split) < 2:
+            raise GlomError("Value did not have 2 or more elements")
+
+        return split[-1] if last else split[0]
+
+    return parser
+
+
+def email_metadata(selector):
+    first_name = split(False, ".")
+    last_name = split(True, ".")
+
+    def parser(value):
+        if not value:
+            raise GlomError("Value was not defined")
 
         try:
-            return value.split(" ")[index]
-        except:
-            return OMIT
+            parsed = validate_email(value, check_deliverability=False, allow_empty_local=True)
 
-    return splitter
+            if selector == "domain":
+                return parsed["domain"]
+
+            return (
+                first_name(parsed["local"]) if selector == "first_name" else last_name(parsed["local"])
+            ).capitalize()
+        except EmailNotValidError as e:
+            raise GlomError(str(e))
+
+    return parser
 
 
 def validate_answer(value):
@@ -86,6 +126,17 @@ def validate_answer(value):
             return VALID_ANSWERS[key]
 
     return OMIT
+
+
+def valid_assessment_order(value):
+    if not value:
+        return OMIT
+
+    normalized = str(value).strip().lower()
+    try:
+        return VALID_ASSESSMENT_TIERS[normalized]
+    except KeyError:
+        return OMIT
 
 
 def date_or_none(value):
