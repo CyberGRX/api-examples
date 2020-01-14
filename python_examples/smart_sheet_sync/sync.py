@@ -70,14 +70,23 @@ def process_missing_vendors(missing_vendors, skip_rows_without_orders, token, ap
     for missing in tqdm(missing_vendors, total=len(missing_vendors), desc="Create missing vendors"):
         uri = api + "/v1/third-parties?&name=" + missing["name"]
         response = requests.get(uri, headers={"Authorization": token.strip()})
-        result = json.loads(response.content.decode("utf-8"))
-        matches = glom(result, "items", default=[])
+        if response.status_code not in [200]:
+            print("Error looking up third party by name " + missing["name"])
+            print(response.content)
+            matches = []
+        else:
+            result = json.loads(response.content.decode("utf-8"))
+            matches = glom(result, "items", default=[])
 
         if not matches:
             uri = api + "/v1/third-parties?&domain=" + missing["url"]
             response = requests.get(uri, headers={"Authorization": token.strip()})
-            result = json.loads(response.content.decode("utf-8"))
-            matches = glom(result, "items", default=[])
+            if response.status_code not in [200]:
+                print("Error looking up third party by url " + missing["url"])
+                print(response.content)
+            else:
+                result = json.loads(response.content.decode("utf-8"))
+                matches = glom(result, "items", default=[])
 
         if len(matches) > 1:
             print("Multiple GRX records matched " + missing["name"])
