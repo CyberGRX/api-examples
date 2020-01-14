@@ -1,4 +1,4 @@
-This example application showcases a complete CyberGRX export to XML and JSON files using the [CyberGRX Bulk API](https://api.cybergrx.com/bulk-v1/swagger/).  This example is coded using Python, the integration code is contained in [export.py](./export.py).  You should run all commands from this directory.
+This example application showcases the abilility to make changes to company tags in bulk using the [CyberGRX API](https://api.cybergrx.com/v1/swagger/).  This example is coded using Python, the integration code is contained in [apply_tags.py](./apply_tags.py).  You should run all commands from this directory.
 
 # Running the example
 The first step is to configure a virtual environment for the application dependencies.  Depending on the version of Python that you are using the following commands will slightly differ.
@@ -10,10 +10,9 @@ The first step is to configure a virtual environment for the application depende
 At this point you are all setup to run the example, but before you do, create a file that holds your API token. 
 - `vi .auth-token` add the following line to this file and save it `export CYBERGRX_API_TOKEN="API-V1 TOKEN FROM UI"`
 
-Once that is done you can source that file into your environment and run the command
+Once that is done you can source that file into your environment and run the apply_tags command
 - Remember to source your python environment `source env/bin/activate` the first time you run the command
 - `source .auth-token`
-- `python export.py`
-- Open `ecosystem.json` this is the raw payload directly form the API
-- Open `ecosystem.xml` this is the payload transformed into an XML representation (fields may be renamed or missing).
+- This example command assumes that you have a tagging.xlsx file containing a Test sheet with at least 2 column headers ('Company Name' and 'Tag').  Take a look at the tagging.xlsx file in this directory for an example.
+- `python apply_tags.py --company-header="Company Name" --tag-header="Tags" --sheet="Third Parties" tagging.xlsx`
 - Once you are done **remove** the `.auth-token` file so you do not leak sensitive information.
