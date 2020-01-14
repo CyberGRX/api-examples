@@ -144,20 +144,20 @@ COMPANY_SCHEMA = {
         {
             "internal": (
                 {
-                    "owner": ("internal_vendor_owner", skip_falsy),
-                    "description": ("internal_description", skip_falsy),
-                    "location": ("internal_description", skip_falsy),
+                    "owner": Coalesce(("internal_vendor_owner", skip_falsy), default=OMIT),
+                    "description": Coalesce(("internal_description", skip_falsy), default=OMIT),
+                    "location": Coalesce(("internal_description", skip_falsy), default=OMIT),
                 },
                 skip_falsy,
             ),
             "cyber_classification": (
                 {
-                    "critical_or_support": ("meta_is_critical_or_support", skip_falsy),
-                    "rto": ("meta_rto", skip_falsy),
-                    "data_sensitivity": ("meta_data_sensitivity", skip_falsy),
-                    "compliance": ("meta_compliance", skip_falsy),
-                    "tech_risk": ("meta_tech_risk", skip_falsy),
-                    "influence": ("meta_influence", skip_falsy),
+                    "critical_or_support": Coalesce(("meta_is_critical_or_support", skip_falsy), default=OMIT),
+                    "rto": Coalesce(("meta_rto", skip_falsy), default=OMIT),
+                    "data_sensitivity": Coalesce(("meta_data_sensitivity", skip_falsy), default=OMIT),
+                    "compliance": Coalesce(("meta_compliance", skip_falsy), default=OMIT),
+                    "tech_risk": Coalesce(("meta_tech_risk", skip_falsy), default=OMIT),
+                    "influence": Coalesce(("meta_influence", skip_falsy), default=OMIT),
                 },
                 skip_falsy,
             ),
