@@ -14,189 +14,175 @@ import json
 import requests
 import smartsheet
 import stringcase
+from datetime import datetime, timedelta
 from openpyxl import Workbook, load_workbook
 from tqdm import tqdm
-from utils import split, normalize_vendor, lookup_sheet_id, skip_falsy, insert_http, validate_answer
+from utils import (
+    split,
+    normalize_vendor,
+    lookup_sheet_id,
+    skip_falsy,
+    insert_http,
+    validate_answer,
+    sheet_writer,
+    row_to_vendor,
+)
+from config import HEADER_MAPPING, COMPANY_SCHEMA, GRX_COMPANY_SCHEMA, BULK_IMPORT_COLUMNS
 from glom import glom, Coalesce, OMIT
 
 import click
 
-HEADER_MAPPING = {
-    "Vendor Name": "company_name",
-    "Vendor URL": "company_url",
 
-    # Address metadata (need at least a city to create a company)
-    "Vendor HQ City": "address_city",
+def process_newly_matched_vendor(missing, matches, token, api):
+    if glom(matches, "0.custom_id", default=None):
+        print("Found a GRX record that had a different custom_id for " + missing["name"])
+        return
 
-    # Internal Metadata
-    "Vendor Owner": "internal_vendor_owner",
-    "Description": "internal_description",
-    "Location": "internal_location",
+    # Found one company in CyberGRX that does not have a custom_id, link these records up
+    uri = api + glom(matches, "0.uri") + "/custom-id"
+    response = requests.put(uri, headers={"Authorization": token.strip()}, json={"custom_id": missing["custom_id"]})
+    if response.status_code != 200:
+        print("Error submitting custom_id for " + missing["name"])
+        print(response.content)
 
-    # Third Party Contact Info
-    "Vendor Contact Name": "third_party_contact_name",
-    "Vendor Contact Email": "third_party_contact_email",
-    "Vendor Contact Phone": "third_party_contact_phone",
+    if "custom_metadata" in missing:
+        # Apply custom metadata
+        uri = api + glom(matches, "0.uri") + "/custom-metadata"
+        response = requests.patch(
+            uri,
+            headers={"Authorization": token.strip(), "Content-Type": "application/merge-patch+json"},
+            json=missing["custom_metadata"],
+        )
+        if response.status_code != 200:
+            print("Error submitting custom_metadata for " + missing["name"])
+            print(response.content)
 
-    # Cyber classification metadata
-    "Critical/Support": "meta_is_critical_or_support",
-    "RTO": "meta_rto",
-    "Data Sensitivity": "meta_data_sensitivity",
-    "Legal/Regulatory Compliance": "meta_compliance",
-    "Technology Risk": "meta_tech_risk",
-    "Influence": "meta_influence",
+    # Apply scoping profile
+    if "third_party_scoping" in missing:
+        third_party_id = glom(matches, "0.id")
+        apply_scoping_profile(third_party_id, missing["name"], missing["third_party_scoping"], token, api)
 
-    # Profile questions
-    "Digital Identities": "profile_digital_identities",
-    "People": "profile_people",
-    "Data": "profile_data",
-    "Applications": "profile_applications",
-    "Devices": "profile_devices",
-    "Network Access": "profile_networks",
-    "Facilities": "profile_facilities",
-    "Business Process": "profile_business_process",
 
-    # CyberGRX Risk Analysis
-    "Impact": "impact",
-    "Likelihood": "likelihood",
-}
+def process_missing_vendors(missing_vendors, skip_rows_without_orders, token, api, sheet_id, smart):
+    row_updates = []
+    today = datetime.today()
 
-COMPANY_SCHEMA = {
-    "name": "company_name",
-    "url": ("company_url", insert_http),
-
-    "address": {
-        "city": "address_city",
-    },
-
-    "third_party_contact": {
-        "first_name": Coalesce(("third_party_contact_name", split(0), skip_falsy), default=OMIT),
-        "last_name": Coalesce(("third_party_contact_name", split(1), skip_falsy), default=OMIT),
-        "email": Coalesce(("third_party_contact_email", skip_falsy), default=OMIT),
-        "phone": Coalesce(("third_party_contact_phone", skip_falsy), default=OMIT),
-    },
-
-    "third_party_scoping": {
-        "digital_identities": Coalesce(("profile_digital_identities", validate_answer), default=OMIT),
-        "people": Coalesce(("profile_people", validate_answer), default=OMIT),
-        "data": Coalesce(("profile_data", validate_answer), default=OMIT),
-        "applications": Coalesce(("profile_applications", validate_answer), default=OMIT),
-        "devices": Coalesce(("profile_devices", validate_answer), default=OMIT),
-        "networks": Coalesce(("profile_networks", validate_answer), default=OMIT),
-        "facilities": Coalesce(("profile_facilities", validate_answer), default=OMIT),
-        "business_process": Coalesce(("profile_business_process", validate_answer), default=OMIT),
-    },
-
-    "custom_metadata": {
-        "internal": {
-            "owner": "internal_vendor_owner",
-            "description": "internal_description",
-            "location": "internal_description"
-        },
-        "cyber_classification": {
-            "critical_or_support": "meta_is_critical_or_support",
-            "rto": "meta_rto",
-            "data_sensitivity": "meta_data_sensitivity",
-            "compliance": "meta_compliance",
-            "tech_risk": "meta_tech_risk",
-            "influence": "meta_influence",
-        }
-    },
-}
-
-GRX_COMPANY_SCHEMA = {
-    "id": "id", 
-    "name": "name", 
-    "custom_id": "custom_id",
-    "is_profile_complete": "subscription.is_profile_complete",
-    "impact": "inherent_risk.impact_label",
-    "likelihood": "inherent_risk.likelihood_label",
-}
-
-def process_missing_vendors(missing_vendors, token, api):
     for missing in tqdm(missing_vendors, total=len(missing_vendors), desc="Create missing vendors"):
         uri = api + "/v1/third-parties?&name=" + missing["name"]
-        response = requests.get(uri, headers={'Authorization': token.strip()})
-        result = json.loads(response.content.decode('utf-8'))
+        response = requests.get(uri, headers={"Authorization": token.strip()})
+        result = json.loads(response.content.decode("utf-8"))
         matches = glom(result, "items", default=[])
 
         if not matches:
             uri = api + "/v1/third-parties?&domain=" + missing["url"]
-            response = requests.get(uri, headers={'Authorization': token.strip()})
-            result = json.loads(response.content.decode('utf-8'))
+            response = requests.get(uri, headers={"Authorization": token.strip()})
+            result = json.loads(response.content.decode("utf-8"))
             matches = glom(result, "items", default=[])
 
         if len(matches) > 1:
-            print("Multiple GRX records matched "+ missing["name"])
+            print("Multiple GRX records matched " + missing["name"])
             continue
 
         if len(matches) == 1:
-            if glom(matches, "0.custom_id", default=None):
-                print("Found a GRX record that had a different custom_id for " + missing["name"])
+            # Found a single match within the CyberGRX ecosystem that has not been linked back to SmartSheets
+            process_newly_matched_vendor(missing, matches, token, api)
+            continue
+
+        if not matches:
+            if skip_rows_without_orders and "order_info" not in missing:
+                # This company does not have order info, do not ingest it in CyberGRX yet
                 continue
 
-            # Found one company in CyberGRX that does not have a custom_id, link these records up
-            uri = api + glom(matches, "0.uri") + "/custom-id"
-            response = requests.put(uri, headers={'Authorization': token.strip()}, json={"custom_id": missing["custom_id"]})
-            if response.status_code != 200:
-                print("Error submitting custom_id for " + missing["name"])
-                print(response.content)
+            # This company must be added to the CyberGRX ecosystem
+            ingest_date = missing.pop("ingest_date")
+            if ingest_date and ingest_date + timedelta(days=7) >= today:
+                # The record has been recently added to CyberGRX, skip it
+                continue
 
-            uri = api + glom(matches, "0.uri") + "/custom-metadata"
-            response = requests.patch(uri, headers={'Authorization': token.strip(), "Content-Type": "application/merge-patch+json"}, json=missing["custom_metadata"])
-            if response.status_code != 200:
-                print("Error submitting custom_metadata for " + missing["name"])
-                print(response.content)
-
-            continue
-            
-        if not matches:       
             uri = api + "/v1/third-parties"
-            response = requests.post(uri, headers={'Authorization': token.strip()}, json=missing)
+            response = requests.post(uri, headers={"Authorization": token.strip()}, json=missing)
             if response.status_code not in [200, 202]:
                 print("Error submitting GRX vendor request for " + missing["name"])
                 print(response.content)
+            else:
+                ingest_date_cell = smart.models.Cell()
+                ingest_date_cell.column_id = HEADER_MAPPING["Ingest Date"]
+                ingest_date_cell.value = today.strftime("%Y-%m-%d")
+
+                row_update = smart.models.Row()
+                row_update.id = int(missing["custom_id"])
+                row_update.cells.append(ingest_date_cell)
+
+                row_updates.append(row_update)
+
+    if row_updates:
+        # If we have submitted records to CyberGRX, track those updates in the smart sheet
+        smart.Sheets.update_rows(sheet_id, row_updates)
 
 
-def process_profile_updates(matched_vendors, token, api):
+def apply_scoping_profile(third_party_id, third_party_name, scoping_profile, token, api):
+    if not scoping_profile:
+        return
+
+    uri = api + "/v1/third-parties/" + third_party_id + "/scoping"
+    response = requests.put(uri, headers={"Authorization": token.strip()}, json=scoping_profile)
+    if response.status_code != 200:
+        print("Error submitting scoping profile answers for " + third_party_name)
+        print(response.content)
+
+
+def process_vendors_with_profile_updates(matched_vendors, token, api):
     for vendor in tqdm(matched_vendors, total=len(matched_vendors), desc="Submit profile questions"):
-        third_party_id = vendor["grx"]["id"]
-        uri = api + "/v1/third-parties/" + third_party_id + "/scoping"
-        response = requests.put(uri, headers={'Authorization': token.strip()}, json=vendor["third_party_scoping"])
-        if response.status_code != 200:
-            print("Error submitting scoping profile answers for " + vendor["name"])
-            print(response.content)
+        if "third_party_scoping" in vendor:
+            apply_scoping_profile(vendor["grx"]["id"], vendor["name"], vendor["third_party_scoping"], token, api)
 
 
 def process_matched_vendors(matched_vendors, token, sheet_id, api, smart):
     row_updates = []
     for vendor in tqdm(matched_vendors, total=len(matched_vendors), desc="Compute risk updates"):
-        impact = smart.models.Cell()
-        impact.column_id = HEADER_MAPPING["Impact"]
-        impact.value = vendor["grx"]["impact"]
-
-        likelihood = smart.models.Cell()
-        likelihood.column_id = HEADER_MAPPING["Likelihood"]
-        likelihood.value = vendor["grx"]["likelihood"]
-
         row_update = smart.models.Row()
         row_update.id = int(vendor["custom_id"])
-        row_update.cells.append(impact)
-        row_update.cells.append(likelihood)
+
+        if (
+            HEADER_MAPPING["Impact"] != "impact"
+        ):  # If this column is present in the sheet it will be an ID not the field name
+            impact = smart.models.Cell()
+            impact.column_id = HEADER_MAPPING["Impact"]
+            impact.value = vendor["grx"]["impact"]
+            row_update.cells.append(impact)
+
+        if (
+            HEADER_MAPPING["Likelihood"] != "likelihood"
+        ):  # If this column is present in the sheet it will be an ID not the field name
+            likelihood = smart.models.Cell()
+            likelihood.column_id = HEADER_MAPPING["Likelihood"]
+            likelihood.value = vendor["grx"]["likelihood"]
+            row_update.cells.append(likelihood)
+
+        if (
+            HEADER_MAPPING["GRX Vendor Name"] != "grx_vendor_name"
+        ):  # If this column is present in the sheet it will be an ID not the field name
+            grx_vendor_name = smart.models.Cell()
+            grx_vendor_name.column_id = HEADER_MAPPING["GRX Vendor Name"]
+            grx_vendor_name.value = vendor["grx"]["name"]
+            row_update.cells.append(grx_vendor_name)
 
         row_updates.append(row_update)
-        
+
     smart.Sheets.update_rows(sheet_id, row_updates)
 
 
-
 @click.command()
-@click.option('--sheet-name', help="Name of the sheet we are using", required=False)
-@click.option('--sheet-id', help="ID of the sheet we are using", required=False)
-@click.argument('filename', required=False, default="profile-answers.xlsx")
-def sync_smart_sheet(sheet_name, sheet_id, filename):
-    api = os.environ.get('CYBERGRX_API', "https://api.cybergrx.com").rstrip("/")
-    token = os.environ.get('CYBERGRX_API_TOKEN', None)
+@click.option("--sheet-name", help="Name of the sheet we are using", required=False)
+@click.option("--sheet-id", help="ID of the sheet we are using", required=False)
+@click.option(
+    "--skip-rows-without-orders",
+    help="Do not submit rows to CyberGRX that do not have a valid 'Order Assessment Tier'",
+    is_flag=True,
+)
+def sync_smart_sheet(sheet_name, sheet_id, skip_rows_without_orders):
+    api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
+    token = os.environ.get("CYBERGRX_API_TOKEN", None)
     if not token:
         raise Exception("The environment variable CYBERGRX_API_TOKEN must be set")
 
@@ -223,25 +209,25 @@ def sync_smart_sheet(sheet_name, sheet_id, filename):
             HEADER_MAPPING[column.id] = HEADER_MAPPING[column.title]
             HEADER_MAPPING[column.title] = column.id
         else:
-            snake_header = stringcase.snakecase(re.sub(r"[^0-9a-zA-Z]+", '', column.title))
+            snake_header = stringcase.snakecase(re.sub(r"[^0-9a-zA-Z]+", "", column.title))
             HEADER_MAPPING[column.id] = snake_header
             HEADER_MAPPING[snake_header] = column.id
 
-    # Load all vendors from smart sheet                
+    # Load all vendors from smart sheet
     smart_sheet_vendors = [normalize_vendor(vendor, HEADER_MAPPING, COMPANY_SCHEMA) for vendor in sheet.rows]
 
-    # Load all third parties skipping residual risk 
+    # Load all third parties skipping residual risk
     uri = api + "/bulk-v1/third-parties?skip_residual_risk=true"
     print("Fetching third parties from " + uri + " this can take some time.")
-    response = requests.get(uri, headers={'Authorization': token.strip()})
-    grx_vendors = glom(json.loads(response.content.decode('utf-8')), ([GRX_COMPANY_SCHEMA]))
+    response = requests.get(uri, headers={"Authorization": token.strip()})
+    grx_vendors = glom(json.loads(response.content.decode("utf-8")), ([GRX_COMPANY_SCHEMA]))
     grx_custom_ids = set([v["custom_id"] for v in grx_vendors if v["custom_id"]])
 
     # See which vendors in smart sheets do not have a corresponding custom_id in CyberGRX
     missing_vendors = [vendor for vendor in smart_sheet_vendors if vendor["custom_id"] not in grx_custom_ids]
     if missing_vendors:
         print("There are vendors in smart sheet that need to be migrated to CyberGRX")
-        process_missing_vendors(missing_vendors, token, api)
+        process_missing_vendors(missing_vendors, skip_rows_without_orders, token, api, sheet_id, smart)
 
     # Associate smart sheet vendors with CyberGRX records
     grx_vendor_map = {vendor["custom_id"]: vendor for vendor in grx_vendors}
@@ -253,12 +239,96 @@ def sync_smart_sheet(sheet_name, sheet_id, filename):
     vendors_with_profile = [vendor for vendor in matched_vendors if not vendor["grx"]["is_profile_complete"]]
     if vendors_with_profile:
         print("There are vendors with profile questions that need to be answered in CyberGRX")
-        process_profile_updates(vendors_with_profile, token, api)
+        process_vendors_with_profile_updates(vendors_with_profile, token, api)
 
     # For vendors that have matches, sync their risk back to smart sheets
     if matched_vendors:
         print("There are vendors that need to sync risk profiles back to smart sheets")
         process_matched_vendors(matched_vendors, token, sheet_id, api, smart)
 
-if __name__ == '__main__':
-    sync_smart_sheet()
+
+@click.command()
+@click.option("--sheet-name", help="Name of the sheet we are using", required=False)
+@click.option("--sheet-id", help="ID of the sheet we are using", required=False)
+@click.option(
+    "--skip-rows-without-orders",
+    help="Do not submit rows to CyberGRX that do not have a valid 'Order Assessment Tier'",
+    is_flag=True,
+)
+def bulk_import_request(sheet_name, sheet_id, skip_rows_without_orders):
+    api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
+    token = os.environ.get("CYBERGRX_API_TOKEN", None)
+    if not token:
+        raise Exception("The environment variable CYBERGRX_API_TOKEN must be set")
+
+    if not os.environ.get("SMARTSHEET_ACCESS_TOKEN", None):
+        raise Exception("The environment variable SMARTSHEET_ACCESS_TOKEN must be set")
+
+    if not sheet_id and not sheet_name:
+        raise Exception("Either --sheet-name or --sheet-id must be provided")
+
+    smart = smartsheet.Smartsheet()
+    smart.errors_as_exceptions(True)
+
+    # If sheet_id was not provided, lookup the ID using the sheet name
+    if not sheet_id:
+        sheet_id = lookup_sheet_id(smart, sheet_name)
+
+    # Load the entire sheet
+    sheet = smart.Sheets.get_sheet(sheet_id)
+    print("Loaded " + str(len(sheet.rows)) + " vendors from sheet: " + sheet.name)
+
+    # Build column map for later reference - translates column names to smart sheet column ids
+    for column in sheet.columns:
+        if column.title in HEADER_MAPPING:
+            HEADER_MAPPING[column.id] = HEADER_MAPPING[column.title]
+            HEADER_MAPPING[column.title] = column.id
+        else:
+            snake_header = stringcase.snakecase(re.sub(r"[^0-9a-zA-Z]+", "", column.title))
+            HEADER_MAPPING[column.id] = snake_header
+            HEADER_MAPPING[snake_header] = column.id
+
+    # Load all vendors from smart sheet
+    smart_sheet_vendors = [row_to_vendor(vendor, HEADER_MAPPING) for vendor in sheet.rows]
+
+    # Load all third parties skipping residual risk
+    uri = api + "/bulk-v1/third-parties?skip_residual_risk=true"
+    print("Fetching third parties from " + uri + " this can take some time.")
+    response = requests.get(uri, headers={"Authorization": token.strip()})
+    grx_vendors = glom(json.loads(response.content.decode("utf-8")), ([GRX_COMPANY_SCHEMA]))
+    grx_custom_ids = set([v["custom_id"] for v in grx_vendors if v["custom_id"]])
+
+    # See which vendors in smart sheets do not have a corresponding custom_id in CyberGRX
+    missing_vendors = [vendor for vendor in smart_sheet_vendors if vendor["custom_id"] not in grx_custom_ids]
+
+    if skip_rows_without_orders:
+        # User wants to skip vendors that do not have orders
+        missing_vendors = [vendor for vendor in missing_vendors if "order_info" in glom(vendor, COMPANY_SCHEMA)]
+
+    if not missing_vendors:
+        print("There are no vendors that need to be migrated to CyberGRX")
+        return
+
+    wb = Workbook()
+    wb["Sheet"].title = "Third Party Information"
+    vendor_writer = sheet_writer(wb, "Third Party Information", BULK_IMPORT_COLUMNS)
+
+    for vendor in tqdm(missing_vendors, total=len(missing_vendors), desc="Vendor"):
+        vendor_writer(vendor)
+
+    # Finalize each writer (fix width, ETC)
+    vendor_writer.finalizer()
+    wb.save("bulk-import-request.xlsx")
+
+
+@click.group()
+def cli():
+    pass
+
+
+cli.add_command(sync_smart_sheet)
+cli.add_command(bulk_import_request)
+
+
+if __name__ == "__main__":
+    cli()
