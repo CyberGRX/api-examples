@@ -43,6 +43,10 @@ def skip_falsy(value):
     return OMIT if not value else value
 
 
+def as_string(value):
+    return value if not value else str(value)
+
+
 def insert_http(value):
     if value and not value.startswith("http"):
         return "https://" + value

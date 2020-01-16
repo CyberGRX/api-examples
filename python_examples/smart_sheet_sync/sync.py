@@ -68,7 +68,7 @@ def process_missing_vendors(missing_vendors, skip_rows_without_orders, token, ap
     today = datetime.today()
 
     for missing in tqdm(missing_vendors, total=len(missing_vendors), desc="Create missing vendors"):
-        uri = api + "/v1/third-parties?&name=" + missing["name"]
+        uri = api + "/v1/third-parties?name=" + missing["name"]
         response = requests.get(uri, headers={"Authorization": token.strip()})
         if response.status_code not in [200]:
             print("Error looking up third party by name " + missing["name"])
@@ -79,7 +79,11 @@ def process_missing_vendors(missing_vendors, skip_rows_without_orders, token, ap
             matches = glom(result, "items", default=[])
 
         if not matches:
-            uri = api + "/v1/third-parties?&domain=" + missing["url"]
+            domain = missing["url"]
+            if "://" in domain:
+                domain = domain.split("://", 1)[1]
+
+            uri = api + "/v1/third-parties?domain=" + domain
             response = requests.get(uri, headers={"Authorization": token.strip()})
             if response.status_code not in [200]:
                 print("Error looking up third party by url " + missing["url"])

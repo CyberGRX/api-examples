@@ -27,6 +27,7 @@ from utils import (
     email_metadata,
     required,
     valid_assessment_order,
+    as_string,
 )
 from glom import glom, Coalesce, OMIT
 
@@ -89,7 +90,7 @@ COMPANY_SCHEMA = {
         required,
         insert_http,
     ),
-    "custom_id": "custom_id",
+    "custom_id": ("custom_id", as_string),
     "ingest_date": (Coalesce("ingest_date", default=None), date_or_none),
 
     "address": {
@@ -120,7 +121,7 @@ COMPANY_SCHEMA = {
                 skip_falsy,
             ),
             "email": Coalesce(("third_party_contact_email", skip_falsy), default=OMIT),
-            "phone": Coalesce(("third_party_contact_phone", skip_falsy), default=OMIT),
+            "phone": Coalesce(("third_party_contact_phone", as_string, skip_falsy), default=OMIT),
         },
         skip_falsy,
     ),
@@ -170,9 +171,9 @@ GRX_COMPANY_SCHEMA = {
     "id": "id",
     "name": "name",
     "custom_id": "custom_id",
-    "is_profile_complete": "subscription.is_profile_complete",
-    "impact": "inherent_risk.impact_label",
-    "likelihood": "inherent_risk.likelihood_label",
+    "is_profile_complete": Coalesce("subscription.is_profile_complete", default=False),
+    "impact": Coalesce("inherent_risk.impact_label", default="Unknown"),
+    "likelihood": Coalesce("inherent_risk.likelihood_label", default="Unknown"),
 }
 
 BULK_IMPORT_COLUMNS = [
