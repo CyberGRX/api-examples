@@ -48,6 +48,8 @@ HEADER_MAPPING = {
 
     # Third Party Contact Info
     "Vendor Contact Name": "third_party_contact_name",
+    "Vendor Contact First Name": "third_party_contact_first_name",
+    "Vendor Contact Last Name": "third_party_contact_last_name",
     "Vendor Contact Email": "third_party_contact_email",
     "Vendor Contact Phone": "third_party_contact_phone",
 
@@ -72,14 +74,30 @@ HEADER_MAPPING = {
     "Facilities": "profile_facilities",
     "Business Process": "profile_business_process",
 
-    # CyberGRX Risk Analysis
-    "Impact": "impact",
-    "Likelihood": "likelihood",
-
     # GRX Metadata tracking from smart-sheets
     "Ingest Date": "ingest_date",
-    "GRX Vendor Name": "grx_vendor_name",
 }
+
+SMART_SHEET_UPDATE_COLUMNS = {
+    "GRX Vendor Name": {"key": "grx_vendor_name", "spec": "grx.name"},
+
+    "Impact": {"key": "impact", "spec": "grx.impact"},
+    "Likelihood": {"key": "likelihood", "spec": "grx.likelihood"},
+    "Industry": {"key": "industry", "spec": "grx.industry"},
+
+    "Is GRX Profile Complete": {"key": "is_profile_complete", "spec": "grx.is_profile_complete"},
+    "Is GRX Report Available": {"key": "is_report_available", "spec": "grx.is_report_available"},
+
+    "GRX Subscription Status": {"key": "grx_subsctiption_status", "spec": "grx.subsctiption_status"},
+    "GRX Assessment Status": {"key": "grx_assessment_status", "spec": "grx.assessment_status"},
+    "GRX Assessment Progress": {"key": "grx_assessment_progress", "spec": "grx.assessment_progress"},
+    "GRX Assessment Completion Date": {"key": "grx_assessment_completion_date", "spec": "grx.assessment_completion_date"},
+    "GRX Assessment Requested Date": {"key": "grx_assessment_requested_completion_date", "spec": "grx.assessment_requested_completion_date"},
+}
+
+# Ingect column keys into header mapping
+for k, v in SMART_SHEET_UPDATE_COLUMNS.items():
+    HEADER_MAPPING[k] = v["key"]
 
 COMPANY_SCHEMA = {
     "name": "company_name",
@@ -106,6 +124,7 @@ COMPANY_SCHEMA = {
             # Prefer the first and last name from the spread sheet, fallback to using the email address
             "first_name": (
                 Coalesce(
+                    ("third_party_contact_first_name", required),
                     ("third_party_contact_name", split(False), required),
                     ("third_party_contact_email", email_metadata("first_name")),
                     default=OMIT,
@@ -114,6 +133,7 @@ COMPANY_SCHEMA = {
             ),
             "last_name": (
                 Coalesce(
+                    ("third_party_contact_last_name", required),
                     ("third_party_contact_name", split(True), required),
                     ("third_party_contact_email", email_metadata("last_name")),
                     default=OMIT,
@@ -171,9 +191,19 @@ GRX_COMPANY_SCHEMA = {
     "id": "id",
     "name": "name",
     "custom_id": "custom_id",
+
+    "subsctiption_status": Coalesce("subscription.status", default=None),
     "is_profile_complete": Coalesce("subscription.is_profile_complete", default=False),
+    "is_report_available": Coalesce("subscription.is_report_available", default=False),
+    
     "impact": Coalesce("inherent_risk.impact_label", default="Unknown"),
     "likelihood": Coalesce("inherent_risk.likelihood_label", default="Unknown"),
+    "industry": Coalesce("industry", default="Unknown"),
+    
+    "assessment_status": Coalesce("assessment.status", default=None),
+    "assessment_progress": Coalesce("assessment.progress", default=None),
+    "assessment_completion_date": Coalesce("assessment.completion_date", default=None),
+    "assessment_requested_completion_date": Coalesce("assessment.requested_completion_date", default=None),
 }
 
 BULK_IMPORT_COLUMNS = [

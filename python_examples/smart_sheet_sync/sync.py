@@ -27,7 +27,7 @@ from utils import (
     sheet_writer,
     row_to_vendor,
 )
-from config import HEADER_MAPPING, COMPANY_SCHEMA, GRX_COMPANY_SCHEMA, BULK_IMPORT_COLUMNS
+from config import HEADER_MAPPING, SMART_SHEET_UPDATE_COLUMNS, COMPANY_SCHEMA, GRX_COMPANY_SCHEMA, BULK_IMPORT_COLUMNS
 from glom import glom, Coalesce, OMIT
 
 import click
@@ -149,6 +149,14 @@ def process_vendors_with_profile_updates(matched_vendors, token, api):
         if "third_party_scoping" in vendor:
             apply_scoping_profile(vendor["grx"]["id"], vendor["name"], vendor["third_party_scoping"], token, api)
 
+def smart_sheet_cell_update(value, column_id, row_update, smart):
+    if value is not None:
+        cell = smart.models.Cell()
+        cell.value = value
+        cell.column_id = column_id
+        row_update.cells.append(cell)
+
+
 
 def process_matched_vendors(matched_vendors, token, sheet_id, api, smart):
     row_updates = []
@@ -156,29 +164,10 @@ def process_matched_vendors(matched_vendors, token, sheet_id, api, smart):
         row_update = smart.models.Row()
         row_update.id = int(vendor["custom_id"])
 
-        if (
-            HEADER_MAPPING["Impact"] != "impact"
-        ):  # If this column is present in the sheet it will be an ID not the field name
-            impact = smart.models.Cell()
-            impact.column_id = HEADER_MAPPING["Impact"]
-            impact.value = vendor["grx"]["impact"]
-            row_update.cells.append(impact)
-
-        if (
-            HEADER_MAPPING["Likelihood"] != "likelihood"
-        ):  # If this column is present in the sheet it will be an ID not the field name
-            likelihood = smart.models.Cell()
-            likelihood.column_id = HEADER_MAPPING["Likelihood"]
-            likelihood.value = vendor["grx"]["likelihood"]
-            row_update.cells.append(likelihood)
-
-        if (
-            HEADER_MAPPING["GRX Vendor Name"] != "grx_vendor_name"
-        ):  # If this column is present in the sheet it will be an ID not the field name
-            grx_vendor_name = smart.models.Cell()
-            grx_vendor_name.column_id = HEADER_MAPPING["GRX Vendor Name"]
-            grx_vendor_name.value = vendor["grx"]["name"]
-            row_update.cells.append(grx_vendor_name)
+        for k, v in SMART_SHEET_UPDATE_COLUMNS.items():
+            if HEADER_MAPPING[k] != v["key"]:
+                # This column is present in the sheet the mapping is set to a columnID
+                smart_sheet_cell_update(glom(vendor, v["spec"]), HEADER_MAPPING[k], row_update, smart)
 
         row_updates.append(row_update)
 

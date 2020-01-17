@@ -1,3 +1,8 @@
 .vscode
 .DS_Store
 .env
+
+
+# Token files
+.auth-*
+auth-*
