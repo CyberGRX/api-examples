@@ -38,7 +38,7 @@ def columns_for_headers(row, header_map):
 def process_companies(sheet, header_mapping):
     companies = []
     headers = {}
-    for index, row in enumerate(sheet.iter_rows()):
+    for _, row in enumerate(sheet.iter_rows()):
         if not headers:
             headers = columns_for_headers(row, header_mapping)
             if headers and len(headers) != 2:
@@ -57,6 +57,14 @@ def process_companies(sheet, header_mapping):
                         company[headers[column_index]] = col.value
 
             if not company:
+                continue
+
+            if "tags" not in company:
+                print("Company did not have any tags: ", company, " did you provide the correct column header?")
+                continue
+
+            if "name" not in company:
+                print("Company did not have a name: ", company, " did you provide the correct column header?")
                 continue
 
             company["tags"] = [str(tag).strip() for tag in company["tags"].split(",") if tag and str(tag).strip()]
