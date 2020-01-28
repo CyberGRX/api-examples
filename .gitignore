@@ -2,7 +2,9 @@
 .DS_Store
 .env
 
-
 # Token files
 .auth-*
 auth-*
+
+# Windows Bash files
+*.bat
