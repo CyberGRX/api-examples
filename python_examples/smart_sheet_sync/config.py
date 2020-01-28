@@ -103,18 +103,18 @@ COMPANY_SCHEMA = {
     "name": "company_name",
 
     # Prefer the company domain from the spread sheet, fallback to using the email address's domain
-    "url": (
+    "url": Coalesce((
         Coalesce(("company_url", required), ("third_party_contact_email", email_metadata("domain"))),
         required,
         insert_http,
-    ),
+    ), default=OMIT),
     "custom_id": ("custom_id", as_string),
     "ingest_date": (Coalesce("ingest_date", default=None), date_or_none),
 
-    "address": {
+    "address": Coalesce({
         "city": "address_city", 
         "country": "address_country",
-    },
+    }, default=OMIT),
 
     # Map the assessment order column to a valid order request, skip this field if it is not present or invalid
     "order_info": Coalesce(("assessment_order", valid_assessment_order), default=OMIT),

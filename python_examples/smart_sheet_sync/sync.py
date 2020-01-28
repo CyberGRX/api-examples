@@ -216,7 +216,11 @@ def sync_smart_sheet(sheet_name, sheet_id, skip_rows_without_orders):
             HEADER_MAPPING[snake_header] = column.id
 
     # Load all vendors from smart sheet
-    smart_sheet_vendors = [normalize_vendor(vendor, HEADER_MAPPING, COMPANY_SCHEMA) for vendor in sheet.rows]
+    all_smart_sheet_vendors = [normalize_vendor(vendor, HEADER_MAPPING, COMPANY_SCHEMA) for vendor in sheet.rows]
+    for v in all_smart_sheet_vendors:
+        if "company_url" not in v or "address" not in v:
+            print("Missing data in", v)
+    smart_sheet_vendors = [v for v in all_smart_sheet_vendors if "company_url" in v and "address" in v]
 
     # Load all third parties skipping residual risk
     uri = api + "/bulk-v1/third-parties?skip_residual_risk=true"
