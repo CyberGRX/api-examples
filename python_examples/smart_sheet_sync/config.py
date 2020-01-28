@@ -80,19 +80,22 @@ HEADER_MAPPING = {
 
 SMART_SHEET_UPDATE_COLUMNS = {
     "GRX Vendor Name": {"key": "grx_vendor_name", "spec": "grx.name"},
-
     "Impact": {"key": "impact", "spec": "grx.impact"},
     "Likelihood": {"key": "likelihood", "spec": "grx.likelihood"},
     "Industry": {"key": "industry", "spec": "grx.industry"},
-
     "Is GRX Profile Complete": {"key": "is_profile_complete", "spec": "grx.is_profile_complete"},
     "Is GRX Report Available": {"key": "is_report_available", "spec": "grx.is_report_available"},
-
     "GRX Subscription Status": {"key": "grx_subsctiption_status", "spec": "grx.subsctiption_status"},
     "GRX Assessment Status": {"key": "grx_assessment_status", "spec": "grx.assessment_status"},
     "GRX Assessment Progress": {"key": "grx_assessment_progress", "spec": "grx.assessment_progress"},
-    "GRX Assessment Completion Date": {"key": "grx_assessment_completion_date", "spec": "grx.assessment_completion_date"},
-    "GRX Assessment Requested Date": {"key": "grx_assessment_requested_completion_date", "spec": "grx.assessment_requested_completion_date"},
+    "GRX Assessment Completion Date": {
+        "key": "grx_assessment_completion_date",
+        "spec": "grx.assessment_completion_date",
+    },
+    "GRX Assessment Requested Date": {
+        "key": "grx_assessment_requested_completion_date",
+        "spec": "grx.assessment_requested_completion_date",
+    },
 }
 
 # Ingect column keys into header mapping
@@ -103,22 +106,26 @@ COMPANY_SCHEMA = {
     "name": "company_name",
 
     # Prefer the company domain from the spread sheet, fallback to using the email address's domain
-    "url": Coalesce((
-        Coalesce(("company_url", required), ("third_party_contact_email", email_metadata("domain"))),
-        required,
-        insert_http,
-    ), default=OMIT),
+    "url": Coalesce(
+        (
+            Coalesce(("company_url", required), ("third_party_contact_email", email_metadata("domain"))),
+            required,
+            insert_http,
+        ),
+        default=OMIT,
+    ),
     "custom_id": ("custom_id", as_string),
     "ingest_date": (Coalesce("ingest_date", default=None), date_or_none),
-
-    "address": Coalesce({
-        "city": "address_city", 
-        "country": "address_country",
-    }, default=OMIT),
+    "address": (
+        {
+            "city": Coalesce(("address_city", skip_falsy), default=OMIT),
+            "country": Coalesce(("address_country", skip_falsy), default=OMIT),
+        },
+        skip_falsy,
+    ),
 
     # Map the assessment order column to a valid order request, skip this field if it is not present or invalid
     "order_info": Coalesce(("assessment_order", valid_assessment_order), default=OMIT),
-
     "third_party_contact": (
         {
             # Prefer the first and last name from the spread sheet, fallback to using the email address
@@ -145,7 +152,7 @@ COMPANY_SCHEMA = {
         },
         skip_falsy,
     ),
-
+    
     # If the row has answers, configure the scoping profile payload
     "third_party_scoping": (
         {
@@ -160,7 +167,6 @@ COMPANY_SCHEMA = {
         },
         skip_falsy,
     ),
-
     "custom_metadata": (
         {
             "internal": (
@@ -191,15 +197,12 @@ GRX_COMPANY_SCHEMA = {
     "id": "id",
     "name": "name",
     "custom_id": "custom_id",
-
     "subsctiption_status": Coalesce("subscription.status", default=None),
     "is_profile_complete": Coalesce("subscription.is_profile_complete", default=False),
     "is_report_available": Coalesce("subscription.is_report_available", default=False),
-    
     "impact": Coalesce("inherent_risk.impact_label", default="Unknown"),
     "likelihood": Coalesce("inherent_risk.likelihood_label", default="Unknown"),
     "industry": Coalesce("industry", default="Unknown"),
-    
     "assessment_status": Coalesce("assessment.status", default=None),
     "assessment_progress": Coalesce("assessment.progress", default=None),
     "assessment_completion_date": Coalesce("assessment.completion_date", default=None),

@@ -149,13 +149,13 @@ def process_vendors_with_profile_updates(matched_vendors, token, api):
         if "third_party_scoping" in vendor:
             apply_scoping_profile(vendor["grx"]["id"], vendor["name"], vendor["third_party_scoping"], token, api)
 
+
 def smart_sheet_cell_update(value, column_id, row_update, smart):
     if value is not None:
         cell = smart.models.Cell()
         cell.value = value
         cell.column_id = column_id
         row_update.cells.append(cell)
-
 
 
 def process_matched_vendors(matched_vendors, token, sheet_id, api, smart):
@@ -217,10 +217,14 @@ def sync_smart_sheet(sheet_name, sheet_id, skip_rows_without_orders):
 
     # Load all vendors from smart sheet
     all_smart_sheet_vendors = [normalize_vendor(vendor, HEADER_MAPPING, COMPANY_SCHEMA) for vendor in sheet.rows]
+
+    # Report any records that are missing data
     for v in all_smart_sheet_vendors:
-        if "url" not in v or "address" not in v:
+        if not v["record_has_url_and_address"]:
             print("Missing data in", v)
-    smart_sheet_vendors = [v for v in all_smart_sheet_vendors if "url" in v and "address" in v]
+
+    # Only operate on records that have full data
+    smart_sheet_vendors = [v for v in all_smart_sheet_vendors if v["record_has_url_and_address"]]
 
     # Load all third parties skipping residual risk
     uri = api + "/bulk-v1/third-parties?skip_residual_risk=true"

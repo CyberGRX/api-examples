@@ -61,7 +61,21 @@ def row_to_vendor(row, column_mapping):
 
 
 def normalize_vendor(row, column_mapping, spec):
-    return glom(row_to_vendor(row, column_mapping), spec)
+    vendor = glom(row_to_vendor(row, column_mapping), spec)
+
+    # Check that vendor record for accuracy
+    if "url" not in vendor:
+        vendor["record_has_url_and_address"] = False
+    elif "address" not in vendor:
+        vendor["record_has_url_and_address"] = False
+    elif "city" not in vendor["address"]:
+        vendor["record_has_url_and_address"] = False
+    elif "country" not in vendor["address"]:
+        vendor["record_has_url_and_address"] = False
+    else:
+        vendor["record_has_url_and_address"] = True
+
+    return vendor
 
 
 def lookup_sheet_id(smart, sheet_name):
