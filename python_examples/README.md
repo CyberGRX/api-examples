@@ -4,6 +4,7 @@ Some sample integrations with the [CyberGRX API](https://api.cybergrx.com/v1/swa
 ## Integrations
 - [SmartSheet as GRC integrated with CyberGRX](./smart_sheet_sync/README.md)
 - [Answer vendor inherent risk profile questions](./answer_profile_questions/README.md)
+- [Order assessments in bulk](./order_assessments/README.md)
 
 # Bulk API Integrations
 Some sample integrations with the [CyberGRX Bulk API](https://api.cybergrx.com/bulk-v1/swagger/).  These bulk examples pull an entire ecosystem with a single API request.  This endpoint will retrieve all available information for each third party.  For third parties with authorized reports, this includes the latest authorized residual_risk (gaps/findings) as well as the latest control scores.
