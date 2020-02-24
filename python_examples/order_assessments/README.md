@@ -20,5 +20,7 @@ There is 1 command in this example, before it can be run, setup the Python envir
 - Once you are done experimenting remember to **remove** the `.auth-token` file so you do not leak sensitive information.
 
 ## Ordering assessments in bulk
-This command will order assessments for third parties that have no current order.
-- `python order.py`
+This command will order assessments for third parties that do not have orders already.
+- This command expects an excel file that resembels `bulk-order.xlsx` an example has been provided in this directory.
+- All columns are required except for `Vendor Contact Phone`
+- `python order.py bulk-order.xlsx`
