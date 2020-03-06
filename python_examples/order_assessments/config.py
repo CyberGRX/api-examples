@@ -11,6 +11,7 @@
 import os
 import re
 import json
+from uuid import uuid4
 import requests
 import stringcase
 from openpyxl import Workbook, load_workbook
@@ -94,9 +95,15 @@ COMPANY_SCHEMA = {
     ),
 }
 
+def url_cleanup(v):
+    if not v:
+        return f"https://{uuid4()}.net"
+
+    return f"https://{v}" if "http" not in v else v
+
 GRX_COMPANY_SCHEMA = {
     "id": "id",
     "name": "name",
-    "url": ("primary_url", lambda v: f"https://{v}" if "http" not in v else v),
+    "url": ("primary_url", url_cleanup),
     "subscription_status": Coalesce("subscription.status", default=None),
 }
