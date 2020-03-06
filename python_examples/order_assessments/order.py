@@ -86,7 +86,7 @@ def submit_orders(sheet, filename):
         response = requests.post(uri, headers={'Authorization': token.strip()}, json=company)
         if response.status_code is 202:
             print(f"The order was placed for {company_name} but it is in the curation queue, must have had multiple companies with same name")
-            break
+            continue
 
         if response.status_code is not 200:
             print(f"There was an error processing the order for {company_name}")
