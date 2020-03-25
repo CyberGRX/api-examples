@@ -20,8 +20,8 @@ def requirements(f):
 install_requires = requirements('requirements.txt')
 
 setup(
-    name='bulk-api-excel-export',
-    url='https://github.com/CyberGRX/api-examples/tree/master/python_examples/bulk_excel_export',
+    name='control-mapping-framework',
+    url='https://github.com/CyberGRX/api-examples/tree/master/python_examples/control_mapping_framework',
     author='CyberGRX Engineering Team',
     author_email='engineers@cybergrx.com',
     version="1.0.0",
