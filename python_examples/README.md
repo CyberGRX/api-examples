@@ -13,3 +13,4 @@ Some sample integrations with the [CyberGRX Bulk API](https://api.cybergrx.com/b
 - [Bulk export to an Excel file](./bulk_excel_export/README.md)
 - [Bulk export to a XML file](./bulk_xml_export/README.md)
 - [Export an ecosystem with columns populated via tagging conventions](./excel_export_mapped_tags/README.md)
+- [Export an ecosystem into a template excel file](./control_mapping_framework/README.md)
