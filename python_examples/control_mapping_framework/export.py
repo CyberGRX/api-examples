@@ -22,11 +22,18 @@ from utils import sheet_writer
 from config import YESTERDAY, CONTROL_SCORES, GAPS_TABLE, COMPANY_TAGS, TP_COLUMNS, TP_MAPPING, GAPS_COLUMNS, SCORE_COLUMNS, SCORE_MAPPING, TAG_COLUMNS
 
 
+def create_sheet(wb, sheet_name):
+    try:
+        wb[sheet_name]
+    except KeyError:
+        wb.create_sheet(sheet_name)
+
 def init_workbook(filename):
     wb = load_workbook(filename=filename)
-    wb.create_sheet(CONTROL_SCORES)
-    wb.create_sheet(GAPS_TABLE)
-    wb.create_sheet(COMPANY_TAGS)
+
+    create_sheet(wb, CONTROL_SCORES)
+    create_sheet(wb, GAPS_TABLE)
+    create_sheet(wb, COMPANY_TAGS)
     
     findings_writer = sheet_writer(wb, GAPS_TABLE, GAPS_COLUMNS)
     scores_writer = sheet_writer(wb, CONTROL_SCORES, SCORE_COLUMNS, mapping=SCORE_MAPPING)
