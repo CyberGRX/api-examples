@@ -9,6 +9,7 @@
 #
 
 import os
+import re
 import json
 import requests
 
@@ -59,6 +60,7 @@ def map_analytics(template_name, reports_from):
     print(f"Retrieved {str(len(result))} third parties from your ecosystem, building an excel.")
     for tp in tqdm(result, total=len(result), desc="Third Party"):
         company_name = tp["name"]
+        report_date = glom(tp, Coalesce("residual_risk.date", default=""))
 
         scores = glom(tp, Coalesce("residual_risk.scores", default=[]))
         if not scores:
@@ -84,7 +86,7 @@ def map_analytics(template_name, reports_from):
         findings_writer.finalizer()
         scores_writer.finalizer()
         tags_writer.finalizer()
-        wb.save(f'{company_name}-mapped.xlsx')
+        wb.save(f'{re.sub("[^A-Za-z0-9 ]+", "", company_name).replace(" ", "-")}_{report_date}.xlsx')
 
 
 @click.group()
