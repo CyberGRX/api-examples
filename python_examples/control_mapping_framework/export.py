@@ -20,7 +20,18 @@ from tqdm import tqdm
 from glom import glom, Coalesce
 
 from utils import sheet_writer
-from config import YESTERDAY, CONTROL_SCORES, GAPS_TABLE, COMPANY_TAGS, TP_COLUMNS, TP_MAPPING, GAPS_COLUMNS, SCORE_COLUMNS, SCORE_MAPPING, TAG_COLUMNS
+from config import (
+    YESTERDAY,
+    CONTROL_SCORES,
+    GAPS_TABLE,
+    COMPANY_TAGS,
+    TP_COLUMNS,
+    TP_MAPPING,
+    GAPS_COLUMNS,
+    SCORE_COLUMNS,
+    SCORE_MAPPING,
+    TAG_COLUMNS,
+)
 
 
 def create_sheet(wb, sheet_name):
@@ -29,13 +40,17 @@ def create_sheet(wb, sheet_name):
     except KeyError:
         wb.create_sheet(sheet_name)
 
+
 def init_workbook(filename):
     wb = load_workbook(filename=filename)
+
+    main = wb[0]
+    print(main)
 
     create_sheet(wb, CONTROL_SCORES)
     create_sheet(wb, GAPS_TABLE)
     create_sheet(wb, COMPANY_TAGS)
-    
+
     findings_writer = sheet_writer(wb, GAPS_TABLE, GAPS_COLUMNS)
     scores_writer = sheet_writer(wb, CONTROL_SCORES, SCORE_COLUMNS, mapping=SCORE_MAPPING)
     tags_writer = sheet_writer(wb, COMPANY_TAGS, TAG_COLUMNS)
@@ -44,19 +59,31 @@ def init_workbook(filename):
 
 
 @click.command()
-@click.option("--template-name", help="Filename of the controls mapping template", required=False, default="template.xlsx")
-@click.option("--reports-from", help="Retrieve reports that are 'newer' than this date, defaults to yesterday", required=False, default=YESTERDAY)
+@click.option(
+    "--template-name", help="Filename of the controls mapping template", required=False, default="template.xlsx",
+)
+@click.option(
+    "--reports-from",
+    help="Retrieve reports that are 'newer' than this date, defaults to yesterday",
+    required=False,
+    default=YESTERDAY,
+)
 def map_analytics(template_name, reports_from):
-    api = os.environ.get('CYBERGRX_API', "https://api.cybergrx.com").rstrip("/")
-    token = os.environ.get('CYBERGRX_API_TOKEN', None)
+    api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
+    token = os.environ.get("CYBERGRX_API_TOKEN", None)
     if not token:
         raise Exception("The environment variable CYBERGRX_API_TOKEN must be set")
 
     uri = f"{api}/bulk-v1/third-parties?report_date={quote(reports_from)}"
     print(f"Fetching third parties from {uri} this can take some time.")
-    response = requests.get(uri, headers={'Authorization': token.strip()})
-    result = json.loads(response.content.decode('utf-8'))
+    response = requests.get(uri, headers={"Authorization": token.strip()})
+    result = json.loads(response.content.decode("utf-8"))
 
+    wb = load_workbook(filename=template_name)
+
+    main = wb[0]
+    print(main)
+    return 
     print(f"Retrieved {str(len(result))} third parties from your ecosystem, building an excel.")
     for tp in tqdm(result, total=len(result), desc="Third Party"):
         company_name = tp["name"]
@@ -65,7 +92,7 @@ def map_analytics(template_name, reports_from):
         scores = glom(tp, Coalesce("residual_risk.scores", default=[]))
         if not scores:
             continue
-        
+
         tier = glom(tp, Coalesce("residual_risk.tier", default=0))
         if tier not in [1, 2]:
             print(f"{company_name} had a T{tier} report, this tier is not supported.")
@@ -86,7 +113,7 @@ def map_analytics(template_name, reports_from):
         findings_writer.finalizer()
         scores_writer.finalizer()
         tags_writer.finalizer()
-        wb.save(f'{re.sub("[^A-Za-z0-9 ]+", "", company_name).replace(" ", "-")}_{report_date}.xlsx')
+        wb.save(f'{re.sub("[^A-Za-z0-9 &]+", "", company_name).replace(" ", "-")}_{report_date}.xlsx')
 
 
 @click.group()

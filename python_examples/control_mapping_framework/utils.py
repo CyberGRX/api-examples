@@ -30,7 +30,7 @@ def sheet_writer(wb, name, columns, mapping=None):
 
     for c in columns:
         if not mapping.get(c[1], None):
-            mapping[c[1]] = (c[1])
+            mapping[c[1]] = c[1]
 
     def builder(sheet):
         for idx, injector in enumerate(columns):
@@ -73,7 +73,7 @@ def sheet_writer(wb, name, columns, mapping=None):
 
         def finalizer():
             for column_cells in sheet.columns:
-                length = min(125, max(9, max(len(_cell_value(cell)) + 1 for cell in column_cells)))
+                length = min(125, max(9, max(len(_cell_value(cell)) + 1 for cell in column_cells)),)
 
                 for cell in column_cells:
                     cell.alignment = cell.alignment.copy(wrapText=True)

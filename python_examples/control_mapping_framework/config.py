@@ -18,7 +18,7 @@ from glom import glom, Coalesce, OMIT, Literal
 from pytz import UTC
 import datetime
 
-YESTERDAY = (datetime.datetime.utcnow().replace(tzinfo=UTC) - datetime.timedelta(days = 1)).isoformat()
+YESTERDAY = (datetime.datetime.utcnow().replace(tzinfo=UTC) - datetime.timedelta(days=1)).isoformat()
 
 CONTROL_SCORES = "Answers"
 COMPANY_TAGS = "Company Tags"
@@ -38,7 +38,6 @@ def validation_label(val):
     except KeyError:
         return "Not Reviewed"
 
-    
 
 TP_COLUMNS = [
     ["Company Name", "name", "blue"],
