@@ -18,11 +18,26 @@ from glom import glom, Coalesce, OMIT, Literal
 from pytz import UTC
 import datetime
 
-YESTERDAY = (datetime.datetime.utcnow().replace(tzinfo=UTC) - datetime.timedelta(days = 1)).isoformat()
+YESTERDAY = (datetime.datetime.utcnow().replace(tzinfo=UTC) - datetime.timedelta(days=1)).isoformat()
 
 CONTROL_SCORES = "Answers"
 COMPANY_TAGS = "Company Tags"
 GAPS_TABLE = "Control Gaps (Findings)"
+
+VALIDATION_LABELS = {
+    "FullyValidated": "Fully Validated",
+    "PartiallyValidated": "Partially Validated",
+    "NotValidated": "Not Validated",
+    None: "Not Reviewed",
+}
+
+
+def validation_label(val):
+    try:
+        return VALIDATION_LABELS[val]
+    except KeyError:
+        return "Not Reviewed"
+
 
 TP_COLUMNS = [
     ["Company Name", "name", "blue"],
@@ -50,25 +65,27 @@ GAPS_COLUMNS = [
 ]
 
 SCORE_COLUMNS = [
-    ["Control", "number_name", "blue"],
-    ["Question Type", "question_type", "blue"],
+    ["Control Number", "number", "blue"],
+    ["Control Name", "number_name", "blue"],
     ["Answer State", "answer_state", "orange"],
     ["Effectiveness Score", "effectiveness_score", "orange"],
     ["Coverage Score", "coverage_score", "orange"],
     ["Maturity Score", "maturity_score", "orange"],
     ["Comment", "comment"],
     ["Validated", "validation"],
+    ["Question Type", "question_type", "blue"],
 ]
 
 SCORE_MAPPING = {
+    "number": "number",
     "number_name": lambda v: f'{v["number"]} {v["name"]}',
     "answer_state": Coalesce("answer_state", default=None),
     "question_type": Coalesce("question_type", default=None),
     "effectiveness_score": Coalesce("effectiveness_score", default=None),
     "coverage_score": Coalesce("coverage_score", default=None),
     "maturity_score": Coalesce("maturity_score", default=None),
-    "comment": Literal(None),
-    "validation": Literal(None),
+    "validation": (Coalesce("validation_state", default=None), validation_label),
+    "comment": Literal(""),
 }
 
 TAG_COLUMNS = [
