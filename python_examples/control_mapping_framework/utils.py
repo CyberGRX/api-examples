@@ -8,6 +8,7 @@
 #
 #
 
+import re
 import os
 import json
 import requests
@@ -24,7 +25,22 @@ def _cell_value(cell):
     return "{}".format(cell.value).strip() if cell and cell.value else ""
 
 
-def sheet_writer(wb, name, columns, mapping=None):
+_VLOOKUP_REGEX = re.compile(r'.*?VLOOKUP\("(?P<control>.*?)".*')
+
+
+def control_search(row):
+    found = set()
+
+    for cell in row.values():
+        if isinstance(cell, Cell):
+            cell = _cell_value(cell)
+
+        found.update(_VLOOKUP_REGEX.findall(cell))
+
+    return found
+
+
+def sheet_writer(wb, name, columns, mapping=None, insert_controls=None):
     if not mapping:
         mapping = {}
 
@@ -52,10 +68,20 @@ def sheet_writer(wb, name, columns, mapping=None):
             cell = sheet.cell(row=_row, column=_col)
             cell.value = _val
 
-        __non_local = {"row": 2}
+        row = 2
+        encountered = set()
 
         def writer(blob):
+            nonlocal row
+            nonlocal encountered
+
             transformed = glom(blob, mapping)
+
+            if insert_controls:
+                for v in transformed.values():
+                    if v in insert_controls:
+                        encountered.add(v)
+
             multi_row = 0
             for idx, injector in enumerate(columns):
                 value = transformed[injector[1]]
@@ -63,15 +89,34 @@ def sheet_writer(wb, name, columns, mapping=None):
                     continue
 
                 if not isinstance(value, (list, tuple)):
-                    write_value(__non_local["row"], 1 + idx, value)
+                    write_value(row, 1 + idx, value)
                 else:
                     multi_row = max(multi_row, len(value))
                     for i, v in enumerate(value):
-                        write_value(__non_local["row"] + i, 1 + idx, v)
+                        write_value(row + i, 1 + idx, v)
 
-            __non_local["row"] = __non_local["row"] + (multi_row if multi_row else 1)
+            row = row + (multi_row if multi_row else 1)
 
         def finalizer():
+            nonlocal encountered
+            nonlocal row
+
+            if insert_controls:
+                # Restore controls as NA that were not present in the assessment so that the VLOOKUPS do not break
+                missing_controls = [c for c in insert_controls.difference(encountered)]
+                missing_controls.sort()
+                for control in missing_controls:
+                    write_value(row, 1, control)
+                    write_value(row, 2, "Inserted as Not Applicable, the vendor's assessment did not ask this question")
+                    write_value(row, 3, "AnsweredNotApplicable")
+                    write_value(row, 4, "")
+                    write_value(row, 5, "")
+                    write_value(row, 6, "")
+                    write_value(row, 7, "")
+                    write_value(row, 8, "")
+                    write_value(row, 9, "")
+                    row += 1
+
             for column_cells in sheet.columns:
                 length = min(125, max(9, max(len(_cell_value(cell)) + 1 for cell in column_cells)),)
 
