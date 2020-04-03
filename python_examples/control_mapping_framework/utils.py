@@ -113,8 +113,8 @@ def sheet_writer(wb, name, columns, mapping=None, insert_controls=None):
                     write_value(row, 5, "")
                     write_value(row, 6, "")
                     write_value(row, 7, "")
-                    write_value(row, 8, "")
-                    write_value(row, 9, "")
+                    write_value(row, 8, "Not Reviewed")
+                    write_value(row, 9, "SubControl")
                     row += 1
 
             for column_cells in sheet.columns:
