@@ -17,8 +17,11 @@ from tqdm import tqdm
 from utils import sheet_writer
 from glom import glom, Coalesce
 
+
 def tag_categorization(tagging_prefix):
-    return lambda value: ", ".join([v.replace(tagging_prefix, "", 1).strip() for v in value if v.startswith(tagging_prefix)])
+    return lambda value: ", ".join(
+        [v.replace(tagging_prefix, "", 1).strip() for v in value if v.startswith(tagging_prefix)]
+    )
 
 
 THIRD_PARTY_TABLE = "Third Parties"
@@ -54,7 +57,6 @@ TP_MAPPING = {
     "subscription_status": Coalesce("subscription.status", default=None),
     "subscription_tier": Coalesce("subscription.tier", default=None),
     "subscription_available": Coalesce("subscription.is_report_available", default=None),
-
     "business_unit": (Coalesce("tags", default=[]), tag_categorization("BU:")),
     "vendor_owner": (Coalesce("tags", default=[]), tag_categorization("VO:")),
     "regulation": (Coalesce("tags", default=[]), tag_categorization("REG:")),
@@ -92,22 +94,22 @@ TAG_COLUMNS = [
 
 
 @click.command()
-@click.argument('filename', required=False, default='ecosystem.xlsx')
+@click.argument("filename", required=False, default="ecosystem.xlsx")
 def export_ecosystem(filename):
-    api = os.environ.get('CYBERGRX_API', "https://api.cybergrx.com").rstrip("/")
-    token = os.environ.get('CYBERGRX_API_TOKEN', None)
+    api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
+    token = os.environ.get("CYBERGRX_API_TOKEN", None)
     if not token:
         raise Exception("The environment variable CYBERGRX_API_TOKEN must be set")
 
     uri = api + "/bulk-v1/third-parties"
     print("Fetching third parties from " + uri + " this can take some time.")
-    response = requests.get(uri, headers={'Authorization': token.strip()})
-    result = json.loads(response.content.decode('utf-8'))
+    response = requests.get(uri, headers={"Authorization": token.strip()})
+    result = json.loads(response.content.decode("utf-8"))
 
     print("Retrieved " + str(len(result)) + " third parties from your ecosystem, building an excel.")
 
     wb = Workbook()
-    wb['Sheet'].title = THIRD_PARTY_TABLE
+    wb["Sheet"].title = THIRD_PARTY_TABLE
     wb.create_sheet(GAPS_TABLE)
     wb.create_sheet(CONTROL_SCORES)
     wb.create_sheet(COMPANY_TAGS)
@@ -138,5 +140,5 @@ def export_ecosystem(filename):
     wb.save("ecosystem.xlsx")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     export_ecosystem()

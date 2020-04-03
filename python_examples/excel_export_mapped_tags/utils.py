@@ -30,7 +30,7 @@ def sheet_writer(wb, name, columns, mapping=None):
 
     for c in columns:
         if not mapping.get(c[1], None):
-            mapping[c[1]] = (c[1])
+            mapping[c[1]] = c[1]
 
     def builder(sheet):
         for idx, injector in enumerate(columns):

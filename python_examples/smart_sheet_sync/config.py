@@ -36,26 +36,21 @@ import click
 HEADER_MAPPING = {
     "Vendor Name": "company_name",
     "Vendor URL": "company_url",
-
     # Address metadata (need at least a city to create a company)
     "Vendor HQ City": "address_city",
     "Vendor HQ Country": "address_country",
-
     # Internal Metadata
     "Vendor Owner": "internal_vendor_owner",
     "Description": "internal_description",
     "Location": "internal_location",
-
     # Third Party Contact Info
     "Vendor Contact Name": "third_party_contact_name",
     "Vendor Contact First Name": "third_party_contact_first_name",
     "Vendor Contact Last Name": "third_party_contact_last_name",
     "Vendor Contact Email": "third_party_contact_email",
     "Vendor Contact Phone": "third_party_contact_phone",
-
     # Assessment Order Info
     "Order Assessment Tier": "assessment_order",
-
     # Cyber classification metadata
     "Critical/Support": "meta_is_critical_or_support",
     "RTO": "meta_rto",
@@ -63,7 +58,6 @@ HEADER_MAPPING = {
     "Legal/Regulatory Compliance": "meta_compliance",
     "Technology Risk": "meta_tech_risk",
     "Influence": "meta_influence",
-
     # Profile questions
     "Digital Identities": "profile_digital_identities",
     "People": "profile_people",
@@ -73,7 +67,6 @@ HEADER_MAPPING = {
     "Network Access": "profile_networks",
     "Facilities": "profile_facilities",
     "Business Process": "profile_business_process",
-
     # GRX Metadata tracking from smart-sheets
     "Ingest Date": "ingest_date",
 }
@@ -104,7 +97,6 @@ for k, v in SMART_SHEET_UPDATE_COLUMNS.items():
 
 COMPANY_SCHEMA = {
     "name": "company_name",
-
     # Prefer the company domain from the spread sheet, fallback to using the email address's domain
     "url": Coalesce(
         (
@@ -123,7 +115,6 @@ COMPANY_SCHEMA = {
         },
         skip_falsy,
     ),
-
     # Map the assessment order column to a valid order request, skip this field if it is not present or invalid
     "order_info": Coalesce(("assessment_order", valid_assessment_order), default=OMIT),
     "third_party_contact": (
@@ -152,7 +143,6 @@ COMPANY_SCHEMA = {
         },
         skip_falsy,
     ),
-    
     # If the row has answers, configure the scoping profile payload
     "third_party_scoping": (
         {

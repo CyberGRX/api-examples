@@ -21,11 +21,13 @@ import click
 
 
 @click.command()
-@click.option('--sheet', help='What sheet are we processing in the excel file?', required=False, default="Third Parties")
-@click.argument('filename', required=False, default="assessment-orders.xlsx")
+@click.option(
+    "--sheet", help="What sheet are we processing in the excel file?", required=False, default="Third Parties"
+)
+@click.argument("filename", required=False, default="assessment-orders.xlsx")
 def submit_orders(sheet, filename):
-    api = os.environ.get('CYBERGRX_API', "https://api.cybergrx.com").rstrip("/")
-    token = os.environ.get('CYBERGRX_API_TOKEN', None)
+    api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
+    token = os.environ.get("CYBERGRX_API_TOKEN", None)
     if not token:
         raise Exception("The environment variable CYBERGRX_API_TOKEN must be set")
 
@@ -39,26 +41,26 @@ def submit_orders(sheet, filename):
     for company in tqdm(companies, total=len(companies), desc="Find Third Parties"):
         company_name = company.get("name")
         uri = api + "/v1/third-parties?limit=1&name=" + company_name
-        
-        response = requests.get(uri, headers={'Authorization': token.strip()})
+
+        response = requests.get(uri, headers={"Authorization": token.strip()})
         if response.status_code is not 200:
             print(f"There was no match for {company_name} in the ecosystem")
             continue
 
         try:
-            result = glom(json.loads(response.content.decode('utf-8')), "items", default=None)
+            result = glom(json.loads(response.content.decode("utf-8")), "items", default=None)
         except:
             result = None
 
         if not result:
-            #print(f"There was no match for {company_name} in the ecosystem")
+            # print(f"There was no match for {company_name} in the ecosystem")
             continue
 
         if len(result) is not 1:
-            #print(f"There was more than 1 result for {company_name}")
-            #print(result)
+            # print(f"There was more than 1 result for {company_name}")
+            # print(result)
             continue
-        
+
         company.update(glom(result[0], GRX_COMPANY_SCHEMA))
 
     companies_without_lookups = [c for c in companies if "url" not in c]
@@ -73,26 +75,28 @@ def submit_orders(sheet, filename):
         print(f"\nThere were {len(companies_with_orders)} that already had orders, here are the names:")
         for company in companies_with_orders:
             print(f"    {company['name']}")
-    
+
     if not companies_without_orders:
         print("\nThere were no companies that need an order placed")
         return
 
     print(f"\nPlacing {len(companies_without_orders)} assessment orders")
-    for company in tqdm(companies_without_orders, total=len(companies_without_orders), desc="Order Assessments"):  
+    for company in tqdm(companies_without_orders, total=len(companies_without_orders), desc="Order Assessments"):
         company_name = company.get("name")
 
         uri = api + "/v1/third-parties"
-        response = requests.post(uri, headers={'Authorization': token.strip()}, json=company)
+        response = requests.post(uri, headers={"Authorization": token.strip()}, json=company)
         if response.status_code is 202:
-            print(f"The order was placed for {company_name} but it is in the curation queue, must have had multiple companies with same name")
+            print(
+                f"The order was placed for {company_name} but it is in the curation queue, must have had multiple companies with same name"
+            )
             continue
 
         if response.status_code is not 200:
             print(f"There was an error processing the order for {company_name}")
             print(response.status_code)
             print(response.text)
-        
 
-if __name__ == '__main__':
+
+if __name__ == "__main__":
     submit_orders()

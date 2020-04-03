@@ -84,20 +84,20 @@ TAG_COLUMNS = [
 
 
 def retrieve_ecosystem():
-    api = os.environ.get('CYBERGRX_BULK_API', "https://api.cybergrx.com").rstrip("/")
-    token = os.environ.get('CYBERGRX_API_TOKEN', None)
+    api = os.environ.get("CYBERGRX_BULK_API", "https://api.cybergrx.com").rstrip("/")
+    token = os.environ.get("CYBERGRX_API_TOKEN", None)
     if not token:
         raise Exception("The environment variable CYBERGRX_API_TOKEN must be set")
 
     uri = api + "/bulk-v1/third-parties"
     print("Fetching third parties from " + uri + " this can take some time.")
-    response = requests.get(uri, headers={'Authorization': token.strip()})
-    result = json.loads(response.content.decode('utf-8'))
+    response = requests.get(uri, headers={"Authorization": token.strip()})
+    result = json.loads(response.content.decode("utf-8"))
 
     print("Retrieved " + str(len(result)) + " third parties from your ecosystem, building an excel.")
 
     wb = Workbook()
-    wb['Sheet'].title = THIRD_PARTY_TABLE
+    wb["Sheet"].title = THIRD_PARTY_TABLE
     wb.create_sheet(GAPS_TABLE)
     wb.create_sheet(CONTROL_SCORES)
     wb.create_sheet(COMPANY_TAGS)
@@ -128,5 +128,5 @@ def retrieve_ecosystem():
     wb.save("ecosystem.xlsx")
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     retrieve_ecosystem()

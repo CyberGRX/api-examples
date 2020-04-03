@@ -27,13 +27,14 @@ def _cell_value(cell):
 
 def columns_for_headers(row, header_map):
     mapping = {}
-    
+
     for idx, col in enumerate(row):
         column = _cell_value(col)
         if column and header_map.get(column, None):
             mapping[idx] = header_map.get(column, None)
 
     return mapping
+
 
 def process_companies(sheet, header_mapping):
     companies = []
@@ -52,7 +53,7 @@ def process_companies(sheet, header_mapping):
 
                 if col.value is not None:
                     try:
-                        company[headers[column_index]] = bytearray(col.value, 'utf-8').decode("utf-8")
+                        company[headers[column_index]] = bytearray(col.value, "utf-8").decode("utf-8")
                     except:
                         company[headers[column_index]] = col.value
 
@@ -72,6 +73,5 @@ def process_companies(sheet, header_mapping):
                 print("Company did not have any tags: ", company)
             else:
                 companies.append(company)
-
 
     return companies

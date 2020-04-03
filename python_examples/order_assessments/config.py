@@ -35,14 +35,12 @@ import click
 
 HEADER_MAPPING = {
     "Vendor Name": "name",
-
     # Third Party Contact Info
     "Vendor Contact Name": "third_party_contact_name",
     "Vendor Contact First Name": "third_party_contact_first_name",
     "Vendor Contact Last Name": "third_party_contact_last_name",
     "Vendor Contact Email": "third_party_contact_email",
     "Vendor Contact Phone": "third_party_contact_phone",
-
     # Assessment Order Info
     "Order Assessment Tier": "assessment_order",
 }
@@ -50,23 +48,16 @@ HEADER_MAPPING = {
 # Better change of mapping to column headers
 HEADER_MAPPING.update({k.lower().strip(): v for k, v in HEADER_MAPPING.items()})
 HEADER_MAPPING.update({k.upper().strip(): v for k, v in HEADER_MAPPING.items()})
-HEADER_MAPPING.update({re.sub(r"[^0-9a-zA-Z ]+", '', k): v for k, v in HEADER_MAPPING.items()})
+HEADER_MAPPING.update({re.sub(r"[^0-9a-zA-Z ]+", "", k): v for k, v in HEADER_MAPPING.items()})
 HEADER_MAPPING.update({k.replace(" ", "_"): v for k, v in HEADER_MAPPING.items()})
 HEADER_MAPPING.update({k.replace(" ", ""): v for k, v in HEADER_MAPPING.items()})
 
 COMPANY_SCHEMA = {
     "name": "name",
-
     "subscription_status": Literal(None),
-    
-    "address":{
-        "city": Literal("Denver"),
-        "country": Literal("USA"),
-    },
-
+    "address": {"city": Literal("Denver"), "country": Literal("USA"),},
     # Map the assessment order column to a valid order request, skip this field if it is not present or invalid
     "order_info": Coalesce(("assessment_order", valid_assessment_order), default=OMIT),
-
     "third_party_contact": (
         {
             # Prefer the first and last name from the spread sheet, fallback to using the email address
@@ -95,11 +86,13 @@ COMPANY_SCHEMA = {
     ),
 }
 
+
 def url_cleanup(v):
     if not v:
         return f"https://{uuid4()}.net"
 
     return f"https://{v}" if "http" not in v else v
+
 
 GRX_COMPANY_SCHEMA = {
     "id": "id",

@@ -27,13 +27,14 @@ def _cell_value(cell):
 
 def columns_for_headers(row, header_map):
     mapping = {}
-    
+
     for idx, col in enumerate(row):
         column = _cell_value(col)
         if column and header_map.get(column, None):
             mapping[idx] = header_map.get(column, None)
 
     return mapping
+
 
 def process_companies(sheet, header_mapping, normalization):
     companies = []
@@ -49,14 +50,14 @@ def process_companies(sheet, header_mapping, normalization):
 
                 if col.value is not None:
                     try:
-                        company[headers[column_index]] = bytearray(col.value, 'utf-8').decode("utf-8")
+                        company[headers[column_index]] = bytearray(col.value, "utf-8").decode("utf-8")
                     except:
                         company[headers[column_index]] = col.value
 
             company = glom(company, normalization, default=None)
             if not company:
                 continue
-            
+
             companies.append(company)
 
     return companies
