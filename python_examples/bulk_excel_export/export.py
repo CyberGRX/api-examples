@@ -32,8 +32,10 @@ TP_COLUMNS = [
     ["Assessment Progress", "assessment_progress"],
     ["Report order status", "subscription_status"],
     ["Report tier", "subscription_tier"],
+    ["Report validated", "subscription_validated"],
     ["Report available", "subscription_available"],
     ["Industry", "industry"],
+    ["Tags", "tags"],
 ]
 
 TP_MAPPING = {
@@ -46,6 +48,8 @@ TP_MAPPING = {
     "subscription_status": Coalesce("subscription.status", default=None),
     "subscription_tier": Coalesce("subscription.tier", default=None),
     "subscription_available": Coalesce("subscription.is_report_available", default=None),
+    "subscription_validated": Coalesce("subscription.is_validated", default=None),
+    "tags": (Coalesce("tags", default=[]), ",".join),
 }
 
 GAPS_COLUMNS = [
