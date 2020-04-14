@@ -16,6 +16,7 @@ import requests
 import click
 from urllib.parse import quote
 from openpyxl import Workbook, load_workbook
+import xlwings as xw
 from tqdm import tqdm
 from glom import glom, Coalesce
 
@@ -61,6 +62,51 @@ def init_workbook(filename):
     tags_writer = sheet_writer(wb, COMPANY_TAGS, TAG_COLUMNS)
 
     return wb, scores_writer, findings_writer, tags_writer
+
+
+def finalize_workbook(wb, excel_filename, debug=False):
+    if debug:
+        # In debug mode, just save the raw file dont do any cleanup
+        if os.path.exists(excel_filename):
+            os.remove(excel_filename)
+
+        wb.save(excel_filename)
+        return
+
+    temporary_filename = "temporary-workbook.xlsx"
+    if os.path.exists(temporary_filename):
+        os.remove(temporary_filename)
+
+    # Save the raw file as a temporary file so all of the formulas can be calculated
+    wb.save(temporary_filename)
+
+    try:
+        # Open the workbook so Excel can compute all formulas and store them in the document
+        temp_wb = xw.Book(temporary_filename)
+        temp_wb.save()
+        temp_wb.close()
+
+        final_workbook = load_workbook(filename=temporary_filename, data_only=True)
+        main = next((s for _, s in enumerate(final_workbook)))
+
+        # For every cell write the value, this will be the computed formula because we opened using data_only=True
+        for row in main:
+            for cell in row:
+                cell.value = cell.value
+
+        # Remove supporting sheets
+        del final_workbook[CONTROL_SCORES]
+        del final_workbook[GAPS_TABLE]
+        del final_workbook[COMPANY_TAGS]
+
+        # Save a final copy
+        if os.path.exists(excel_filename):
+            os.remove(excel_filename)
+        final_workbook.save(excel_filename)
+    finally:
+        # Clean up after ourselves
+        if os.path.exists(temporary_filename):
+            os.remove(temporary_filename)
 
 
 @click.command()
@@ -114,7 +160,9 @@ def map_analytics(template_name, reports_from):
         findings_writer.finalizer()
         scores_writer.finalizer()
         tags_writer.finalizer()
-        wb.save(f'{re.sub("[^A-Za-z0-9 &]+", "", company_name).replace(" ", "-")}_{report_date}.xlsx')
+
+        excel_filename = f'{re.sub("[^A-Za-z0-9 &]+", "", company_name).replace(" ", "-")}_{report_date}.xlsx'
+        finalize_workbook(wb, excel_filename)
 
 
 @click.group()
