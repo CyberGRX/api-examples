@@ -7,12 +7,23 @@
 #            \/\/          \/     \/               \/        \/      \_/
 #
 #
+import logging
 import os
 import stringcase
 from collections import defaultdict
 from openpyxl import Workbook, load_workbook
 from docx.shared import Cm
 from docxtpl import DocxTemplate, InlineImage
+
+from jinja2 import Environment, DebugUndefined
+
+logger = logging.getLogger(__name__)
+
+
+class SilentUndefined(DebugUndefined):
+    def _fail_with_undefined_error(self, *args, **kwargs):
+        logger.exception(f"{self} was in the template but not sent in the context")
+        return f"{self}"
 
 
 def read_report(excel_file):
@@ -39,7 +50,7 @@ def create_report(excel_file, doc_template, output_name, metadata=None):
     metadata.update(report_data)
 
     template = DocxTemplate(doc_template)
-    template.render(metadata)
+    template.render(metadata, Environment(undefined=SilentUndefined))
 
     # Wipe the report if it exists
     if os.path.exists(output_name):
