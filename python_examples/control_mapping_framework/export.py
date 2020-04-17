@@ -20,6 +20,8 @@ import xlwings as xw
 from tqdm import tqdm
 from glom import glom, Coalesce
 
+from reporting import create_report
+
 from utils import sheet_writer, control_search
 from config import (
     YESTERDAY,
@@ -111,7 +113,13 @@ def finalize_workbook(wb, excel_filename, debug=False):
 
 @click.command()
 @click.option(
-    "--template-name", help="Filename of the controls mapping template", required=False, default="template.xlsx",
+    "--excel-template-name",
+    help="Filename of the controls mapping template",
+    required=False,
+    default="excel-template.xlsx",
+)
+@click.option(
+    "--report-template-name", help="Filename of the report template", required=False, default="report-template.docx",
 )
 @click.option(
     "--reports-from",
@@ -119,7 +127,21 @@ def finalize_workbook(wb, excel_filename, debug=False):
     required=False,
     default=YESTERDAY,
 )
-def map_analytics(template_name, reports_from):
+def map_analytics(excel_template_name, report_template_name, reports_from):
+    if not os.path.exists(excel_template_name):
+        raise Exception(f"The --excel-template-name={excel_template_name} does not exist")
+
+    if not os.path.exists(report_template_name):
+        raise Exception(f"The --report-template-name={report_template_name} does not exist")
+
+    for f in [f for f in os.listdir(".") if os.path.isfile(f)]:
+        if f in [excel_template_name, report_template_name]:
+            continue
+
+        if os.path.splitext(f)[1] in [".xlsx", ".docx"]:
+            print(f"Cleaning up old report {f}")
+            os.remove(f)
+
     api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
     token = os.environ.get("CYBERGRX_API_TOKEN", None)
     if not token:
@@ -144,7 +166,7 @@ def map_analytics(template_name, reports_from):
             print(f"{company_name} had a T{tier} report, this tier is not supported.")
             continue
 
-        wb, scores_writer, findings_writer, tags_writer = init_workbook(template_name)
+        wb, scores_writer, findings_writer, tags_writer = init_workbook(excel_template_name)
 
         for tag in glom(tp, Coalesce("tags", default=[])):
             tags_writer({"tag": tag, "company_name": company_name})
@@ -161,8 +183,23 @@ def map_analytics(template_name, reports_from):
         scores_writer.finalizer()
         tags_writer.finalizer()
 
-        excel_filename = f'{re.sub("[^A-Za-z0-9 &]+", "", company_name).replace(" ", "-")}_{report_date}.xlsx'
+        output_filename = f'{re.sub("[^A-Za-z0-9 &]+", "", company_name).replace(" ", "-")}_{report_date}'
+        excel_filename = f"{output_filename}.xlsx"
+
         finalize_workbook(wb, excel_filename)
+        create_report(excel_filename, report_template_name, f"{output_filename}.docx", metadata=tp)
+
+
+@click.command()
+@click.option(
+    "--report-template-name", help="Filename of the report template", required=False, default="report-template.docx",
+)
+@click.option(
+    "--excel-report-name", help="Process this excel report and generate a word document", required=True,
+)
+def excel_to_report(excel_report_name, report_template_name):
+    file_name = os.path.basename(excel_report_name)
+    create_report(excel_report_name, report_template_name, f"{os.path.splitext(file_name)[0]}.docx")
 
 
 @click.group()
@@ -171,6 +208,7 @@ def cli():
 
 
 cli.add_command(map_analytics)
+cli.add_command(excel_to_report)
 
 
 if __name__ == "__main__":

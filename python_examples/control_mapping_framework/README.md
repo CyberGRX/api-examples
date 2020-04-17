@@ -18,9 +18,9 @@ There are 2 commands in this example, before any can be run setup the Python env
 ## Sync new reports
 This command will retrieve all reports that have been updated within the last 24 hours.
 - `python export.py map-analytics`
-- `python export.py map-analytics --template-name="my custom template.xlsx"`
+- `python export.py map-analytics --excel-template-name="my custom template.xlsx" --report-template-name="my custom report.docx"`
 
 ## Sync all reports
 This command will retrieve all available reports from CyberGRX by using a "reports-from" filter set to 2016.  This command will take some time to process be patient.
 - `python export.py map-analytics --reports-from=2016-01-01`
-- `python export.py map-analytics --reports-from=2016-01-01 --template-name="my custom template.xlsx"`
+- `python export.py map-analytics --reports-from=2016-01-01 --excel-template-name="my custom template.xlsx"`

@@ -113,6 +113,9 @@ venv.bak/
 # Excel files
 *.xlsx
 
+# Word files
+*.docx
+
 # Token files
 .auth-token
 auth-token
