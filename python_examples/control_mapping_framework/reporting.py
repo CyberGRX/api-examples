@@ -67,7 +67,7 @@ def debug_keys(obj, prefix=None):
                 for r in debug_keys(v, prefix=f"{k}."):
                     if r not in results:
                         results.append(r)
-            if isinstance(v, list):
+            elif isinstance(v, list):
                 for vv in v:
                     for r in debug_keys(vv, prefix=f"{k}[]"):
                         if r not in results:
