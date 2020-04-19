@@ -89,12 +89,12 @@ def finalize_workbook(wb, excel_filename, debug=False):
         temp_wb.close()
 
         final_workbook = load_workbook(filename=temporary_filename, data_only=True)
-        main = next((s for _, s in enumerate(final_workbook)))
 
-        # For every cell write the value, this will be the computed formula because we opened using data_only=True
-        for row in main:
-            for cell in row:
-                cell.value = cell.value
+        # For every cell in the document write the value, this will be the computed formula because we opened using data_only=True
+        for _, sheet in enumerate(final_workbook):
+            for row in sheet:
+                for cell in row:
+                    cell.value = cell.value
 
         # Remove supporting sheets
         del final_workbook[CONTROL_SCORES]
