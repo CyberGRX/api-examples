@@ -64,12 +64,12 @@ def debug_keys(obj, prefix=None):
     if isinstance(obj, dict):
         for k, v in obj.items():
             if isinstance(v, dict):
-                for r in debug_keys(v, prefix=f"{k}."):
+                for r in debug_keys(v, prefix=f"{prefix if prefix else ''}{k}."):
                     if r not in results:
                         results.append(r)
             elif isinstance(v, list):
                 for vv in v:
-                    for r in debug_keys(vv, prefix=f"{k}[]"):
+                    for r in debug_keys(vv, prefix=f"{prefix if prefix else ''}{k}[]"):
                         if r not in results:
                             results.append(r)
             else:
