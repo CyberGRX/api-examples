@@ -67,14 +67,6 @@ def init_workbook(filename):
 
 
 def finalize_workbook(wb, excel_filename, debug=False):
-    if debug:
-        # In debug mode, just save the raw file dont do any cleanup
-        if os.path.exists(excel_filename):
-            os.remove(excel_filename)
-
-        wb.save(excel_filename)
-        return
-
     temporary_filename = "temporary-workbook.xlsx"
     if os.path.exists(temporary_filename):
         os.remove(temporary_filename)
@@ -90,16 +82,18 @@ def finalize_workbook(wb, excel_filename, debug=False):
 
         final_workbook = load_workbook(filename=temporary_filename, data_only=True)
 
-        # For every cell in the document write the value, this will be the computed formula because we opened using data_only=True
-        for _, sheet in enumerate(final_workbook):
-            for row in sheet:
-                for cell in row:
-                    cell.value = cell.value
+        # In not in debug mode remove computed values
+        if not debug:
+            # For every cell in the document write the value, this will be the computed formula because we opened using data_only=True
+            for _, sheet in enumerate(final_workbook):
+                for row in sheet:
+                    for cell in row:
+                        cell.value = cell.value
 
-        # Remove supporting sheets
-        del final_workbook[CONTROL_SCORES]
-        del final_workbook[GAPS_TABLE]
-        del final_workbook[COMPANY_TAGS]
+            # Remove supporting sheets
+            del final_workbook[CONTROL_SCORES]
+            del final_workbook[GAPS_TABLE]
+            del final_workbook[COMPANY_TAGS]
 
         # Save a final copy
         if os.path.exists(excel_filename):
@@ -127,7 +121,10 @@ def finalize_workbook(wb, excel_filename, debug=False):
     required=False,
     default=YESTERDAY,
 )
-def map_analytics(excel_template_name, report_template_name, reports_from):
+@click.option(
+    "--debug", help="Put the script into debug mode, extra data will be preserved in this mode", is_flag=True,
+)
+def map_analytics(excel_template_name, report_template_name, reports_from, debug):
     if not os.path.exists(excel_template_name):
         raise Exception(f"The --excel-template-name={excel_template_name} does not exist")
 
@@ -138,7 +135,7 @@ def map_analytics(excel_template_name, report_template_name, reports_from):
         if f in [excel_template_name, report_template_name]:
             continue
 
-        if os.path.splitext(f)[1] in [".xlsx", ".docx"]:
+        if os.path.splitext(f)[1] in [".xlsx", ".docx", ".json"]:
             print(f"Cleaning up old report {f}")
             os.remove(f)
 
@@ -186,8 +183,8 @@ def map_analytics(excel_template_name, report_template_name, reports_from):
         output_filename = f'{re.sub("[^A-Za-z0-9 &]+", "", company_name).replace(" ", "-")}_{report_date}'
         excel_filename = f"{output_filename}.xlsx"
 
-        finalize_workbook(wb, excel_filename)
-        create_report(excel_filename, report_template_name, f"{output_filename}.docx", metadata=tp)
+        finalize_workbook(wb, excel_filename, debug=debug)
+        create_report(excel_filename, report_template_name, f"{output_filename}.docx", metadata=tp, debug=debug)
 
 
 @click.command()
@@ -197,9 +194,12 @@ def map_analytics(excel_template_name, report_template_name, reports_from):
 @click.option(
     "--excel-report-name", help="Process this excel report and generate a word document", required=True,
 )
-def excel_to_report(excel_report_name, report_template_name):
+@click.option(
+    "--debug", help="Put the script into debug mode, extra data will be preserved in this mode", is_flag=True,
+)
+def excel_to_report(excel_report_name, report_template_name, debug):
     file_name = os.path.basename(excel_report_name)
-    create_report(excel_report_name, report_template_name, f"{os.path.splitext(file_name)[0]}.docx")
+    create_report(excel_report_name, report_template_name, f"{os.path.splitext(file_name)[0]}.docx", debug=debug)
 
 
 @click.group()

@@ -116,6 +116,9 @@ venv.bak/
 # Word files
 *.docx
 
+# JSON files
+*.json
+
 # Token files
 .auth-token
 auth-token

@@ -11,6 +11,7 @@ import logging
 import os
 import stringcase
 import re
+import json
 from collections import defaultdict
 from openpyxl import Workbook, load_workbook
 from docx.shared import Cm
@@ -84,18 +85,22 @@ def debug_keys(obj, prefix=None):
     return results
 
 
-def create_report(excel_file, doc_template, output_name, metadata=None):
+def create_report(excel_file, doc_template, output_name, metadata=None, debug=False):
     if not metadata:
         metadata = {}
 
     report_data = read_report(excel_file)
     metadata.update(report_data)
-    debug = debug_keys(metadata)
-    debug.sort()
-    metadata["debug"] = "<w:br/>".join(debug)
+    debugging_keys = debug_keys(metadata)
+    debugging_keys.sort()
+    metadata["debug"] = "<w:br/>".join(debugging_keys)
 
     template = DocxTemplate(doc_template)
     template.render(metadata, Environment(undefined=SilentUndefined))
+
+    if debug:
+        with open(f"{output_name}.json", "w") as f:
+            f.write(json.dumps(metadata, indent=2))
 
     # Wipe the report if it exists
     if os.path.exists(output_name):
