@@ -61,20 +61,25 @@ def read_report(excel_file):
 def debug_keys(obj, prefix=None):
     results = []
 
-    for k, v in obj.items():
-        if isinstance(v, dict):
-            for r in debug_keys(v, prefix=f"{k}."):
-                if r not in results:
-                    results.append(r)
-        if isinstance(v, list):
-            for vv in v:
-                for r in debug_keys(vv, prefix=f"{k}[]"):
+    if isinstance(obj, dict):
+        for k, v in obj.items():
+            if isinstance(v, dict):
+                for r in debug_keys(v, prefix=f"{k}."):
                     if r not in results:
                         results.append(r)
-        else:
-            result = f"{prefix if prefix else ''}{k}"
-            if result not in results:
-                results.append(result)
+            if isinstance(v, list):
+                for vv in v:
+                    for r in debug_keys(vv, prefix=f"{k}[]"):
+                        if r not in results:
+                            results.append(r)
+            else:
+                result = f"{prefix if prefix else ''}{k}"
+                if result not in results:
+                    results.append(result)
+    else:
+        result = f"{prefix if prefix else ''}"
+        if result not in results:
+            results.append(result)
 
     return results
 
