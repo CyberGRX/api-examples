@@ -16,7 +16,7 @@ from openpyxl import Workbook
 from openpyxl.styles.fills import FILL_SOLID
 from openpyxl.styles import Color, PatternFill, Font, Border, Side
 from openpyxl.styles import colors
-from openpyxl.cell import Cell
+from openpyxl.cell import Cell, MergedCell
 from tqdm import tqdm
 from glom import glom
 
@@ -25,14 +25,14 @@ def _cell_value(cell):
     return "{}".format(cell.value).strip() if cell and cell.value else ""
 
 
-_VLOOKUP_REGEX = re.compile(r'.*?VLOOKUP\("(?P<control>.*?)".*')
+_VLOOKUP_REGEX = re.compile(r'.*?VLOOKUP\("(?P<control>\d+\.\d+\.\d+\.\d+).*?".*')
 
 
 def control_search(row):
     found = set()
 
     for cell in row.values():
-        if isinstance(cell, Cell):
+        if isinstance(cell, (Cell, MergedCell)):
             cell = _cell_value(cell)
 
         found.update(_VLOOKUP_REGEX.findall(cell))

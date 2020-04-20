@@ -202,6 +202,20 @@ def excel_to_report(excel_report_name, report_template_name, debug):
     create_report(excel_report_name, report_template_name, f"{os.path.splitext(file_name)[0]}.docx", debug=debug)
 
 
+@click.command()
+@click.option(
+    "--excel-template-name",
+    help="Filename of the controls mapping template",
+    required=False,
+    default="excel-template.xlsx",
+)
+def test_excel_template(excel_template_name):
+    if not os.path.exists(excel_template_name):
+        raise Exception(f"The --excel-template-name={excel_template_name} does not exist")
+
+    init_workbook(excel_template_name)
+
+
 @click.group()
 def cli():
     pass
@@ -209,6 +223,7 @@ def cli():
 
 cli.add_command(map_analytics)
 cli.add_command(excel_to_report)
+cli.add_command(test_excel_template)
 
 
 if __name__ == "__main__":
