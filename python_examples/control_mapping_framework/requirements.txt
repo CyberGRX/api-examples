@@ -2,7 +2,7 @@
 
 click==7.0
 requests==2.20.0
-glom==18.1.1
+glom==19.10.0
 stringcase==1.2.0
 tqdm==4.19.8
 pytz==2019.3

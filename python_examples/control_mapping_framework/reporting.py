@@ -95,12 +95,12 @@ def create_report(excel_file, doc_template, output_name, metadata=None, debug=Fa
     debugging_keys.sort()
     metadata["debug"] = "<w:br/>".join(debugging_keys)
 
+    if debug:
+        with open(f"{os.path.splitext(output_name)[0]}.json", "w") as f:
+            f.write(json.dumps(metadata, indent=2))
+
     template = DocxTemplate(doc_template)
     template.render(metadata, Environment(undefined=SilentUndefined))
-
-    if debug:
-        with open(f"{output_name}.json", "w") as f:
-            f.write(json.dumps(metadata, indent=2))
 
     # Wipe the report if it exists
     if os.path.exists(output_name):

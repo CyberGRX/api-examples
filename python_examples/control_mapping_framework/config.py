@@ -14,7 +14,7 @@ import json
 import requests
 from openpyxl import Workbook, load_workbook
 from tqdm import tqdm
-from glom import glom, Coalesce, OMIT, Literal
+from glom import glom, Check, Coalesce, SKIP, OMIT, Literal
 from pytz import UTC
 import datetime
 
@@ -63,6 +63,28 @@ GAPS_COLUMNS = [
     ["Level", "impact_level", "orange"],
     ["Remedy", "remedy", "orange"],
 ]
+
+GAPS_SUMMARY = {
+    "total_findings": (Coalesce("residual_risk.findings", default=[]), len),
+    "total_high_findings": (
+        Coalesce("residual_risk.findings", default=[]),
+        ["impact_level"],
+        [Check(equal_to="High", default=SKIP)],
+        len,
+    ),
+    "total_medium_findings": (
+        Coalesce("residual_risk.findings", default=[]),
+        ["impact_level"],
+        [Check(equal_to="Medium", default=SKIP)],
+        len,
+    ),
+    "total_low_findings": (
+        Coalesce("residual_risk.findings", default=[]),
+        ["impact_level"],
+        [Check(equal_to="Low", default=SKIP)],
+        len,
+    ),
+}
 
 SCORE_COLUMNS = [
     ["Control Number", "number", "blue"],

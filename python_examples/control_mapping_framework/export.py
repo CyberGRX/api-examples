@@ -34,6 +34,7 @@ from config import (
     SCORE_COLUMNS,
     SCORE_MAPPING,
     TAG_COLUMNS,
+    GAPS_SUMMARY,
 )
 
 
@@ -162,6 +163,9 @@ def map_analytics(excel_template_name, report_template_name, reports_from, debug
         if tier not in [1, 2]:
             print(f"{company_name} had a T{tier} report, this tier is not supported.")
             continue
+
+        # Inject gaps summary into the TP
+        tp.update(glom(tp, Coalesce(GAPS_SUMMARY, default={})))
 
         wb, scores_writer, findings_writer, tags_writer = init_workbook(excel_template_name)
 
