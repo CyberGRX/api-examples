@@ -28,6 +28,9 @@ VALIDATION_LABELS = {
     "FullyValidated": "Fully Validated",
     "PartiallyValidated": "Partially Validated",
     "NotValidated": "Not Validated",
+    # Map the remaining states into the Not Reviewed bucket
+    "PendingReview": "Not Reviewed",
+    "NotSelectedForValidation": "Not Reviewed",
     None: "Not Reviewed",
 }
 
