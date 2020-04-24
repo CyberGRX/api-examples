@@ -38,6 +38,13 @@ VALID_ASSESSMENT_TIERS = {
     "no assessment": None,
 }
 
+INHERENT_RISK_FROM_RECOMMENDATION = {
+    0: "Unconfirmed Exposure",
+    1: "High Exposure",
+    2: "Medium Exposure",
+    3: "Low Exposure",
+}
+
 
 def skip_falsy(value):
     return OMIT if not value else value
@@ -144,6 +151,13 @@ def validate_answer(value):
             return VALID_ANSWERS[key]
 
     return OMIT
+
+
+def inherent_risk_level_from_tier(value):
+    try:
+        return INHERENT_RISK_FROM_RECOMMENDATION[value]
+    except KeyError:
+        return INHERENT_RISK_FROM_RECOMMENDATION[0]
 
 
 def valid_assessment_order(value):

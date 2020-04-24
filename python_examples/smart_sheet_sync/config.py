@@ -28,6 +28,7 @@ from utils import (
     required,
     valid_assessment_order,
     as_string,
+    inherent_risk_level_from_tier,
 )
 from glom import glom, Coalesce, OMIT
 
@@ -76,6 +77,7 @@ SMART_SHEET_UPDATE_COLUMNS = {
     "Impact": {"key": "impact", "spec": "grx.impact"},
     "Likelihood": {"key": "likelihood", "spec": "grx.likelihood"},
     "Industry": {"key": "industry", "spec": "grx.industry"},
+    "CyberGRX Inherent Risk Level": {"key": "grx_inherent_risk_level", "spec": "grx.inherent_risk_level"},
     "Is GRX Profile Complete": {"key": "is_profile_complete", "spec": "grx.is_profile_complete"},
     "Is GRX Report Available": {"key": "is_report_available", "spec": "grx.is_report_available"},
     "GRX Subscription Status": {"key": "grx_subsctiption_status", "spec": "grx.subsctiption_status"},
@@ -192,6 +194,10 @@ GRX_COMPANY_SCHEMA = {
     "is_report_available": Coalesce("subscription.is_report_available", default=False),
     "impact": Coalesce("inherent_risk.impact_label", default="Unknown"),
     "likelihood": Coalesce("inherent_risk.likelihood_label", default="Unknown"),
+    "inherent_risk_level": (
+        Coalesce("inherent_risk.recommended_report_tier", default=0),
+        inherent_risk_level_from_tier,
+    ),
     "industry": Coalesce("industry", default="Unknown"),
     "assessment_status": Coalesce("assessment.status", default=None),
     "assessment_progress": Coalesce("assessment.progress", default=None),
