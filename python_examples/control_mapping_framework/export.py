@@ -16,6 +16,7 @@ import requests
 import click
 from urllib.parse import quote
 from openpyxl import Workbook, load_workbook
+from openpyxl.cell import MergedCell
 import xlwings as xw
 from tqdm import tqdm
 from glom import glom, Coalesce
@@ -89,6 +90,8 @@ def finalize_workbook(wb, excel_filename, debug=False):
             for _, sheet in enumerate(final_workbook):
                 for row in sheet:
                     for cell in row:
+                        if isinstance(cell, MergedCell):
+                            continue
                         cell.value = cell.value
 
             # Remove supporting sheets
