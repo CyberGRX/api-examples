@@ -201,12 +201,16 @@ def map_analytics(excel_template_name, report_template_name, reports_from, debug
 @click.option(
     "--excel-report-name", help="Process this excel report and generate a word document", required=True,
 )
-@click.option(
-    "--debug", help="Put the script into debug mode, extra data will be preserved in this mode", is_flag=True,
-)
-def excel_to_report(excel_report_name, report_template_name, debug):
+def excel_to_report(excel_report_name, report_template_name):
     file_name = os.path.basename(excel_report_name)
-    create_report(excel_report_name, report_template_name, f"{os.path.splitext(file_name)[0]}.docx", debug=debug)
+
+    metadata = {}
+    json_file = f"{os.path.splitext(file_name)[0]}.json"
+    if os.path.exists(json_file):
+        with open(json_file) as f:
+            metadata = json.load(f)
+
+    create_report(excel_report_name, report_template_name, f"{os.path.splitext(file_name)[0]}.docx", metadata=metadata, debug=False)
 
 
 @click.command()
