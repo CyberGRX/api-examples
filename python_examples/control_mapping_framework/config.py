@@ -110,7 +110,7 @@ SCORE_MAPPING = {
     "coverage_score": Coalesce("coverage_score", default=None),
     "maturity_score": Coalesce("maturity_score", default=None),
     "validation": (Coalesce("validation_state", default=None), validation_label),
-    "comment": Literal(""),
+    "comment": (Coalesce("comments", default=[]), "\n".join),
 }
 
 TAG_COLUMNS = [
