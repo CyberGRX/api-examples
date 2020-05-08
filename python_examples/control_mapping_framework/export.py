@@ -36,6 +36,7 @@ from config import (
     SCORE_MAPPING,
     TAG_COLUMNS,
     GAPS_SUMMARY,
+    THIRD_PARTY_TABLE,
 )
 
 
@@ -58,14 +59,16 @@ def init_workbook(filename):
     create_sheet(wb, CONTROL_SCORES)
     create_sheet(wb, GAPS_TABLE)
     create_sheet(wb, COMPANY_TAGS)
+    create_sheet(wb, THIRD_PARTY_TABLE)
 
     findings_writer = sheet_writer(wb, GAPS_TABLE, GAPS_COLUMNS)
     scores_writer = sheet_writer(
         wb, CONTROL_SCORES, SCORE_COLUMNS, mapping=SCORE_MAPPING, insert_controls=insert_controls
     )
     tags_writer = sheet_writer(wb, COMPANY_TAGS, TAG_COLUMNS)
+    third_party_writer = sheet_writer(wb, THIRD_PARTY_TABLE, TP_COLUMNS, mapping=TP_MAPPING)
 
-    return wb, scores_writer, findings_writer, tags_writer
+    return wb, scores_writer, findings_writer, tags_writer, third_party_writer
 
 
 def finalize_workbook(wb, excel_filename, debug=False):
@@ -170,7 +173,7 @@ def map_analytics(excel_template_name, report_template_name, reports_from, debug
         # Inject gaps summary into the TP
         tp.update(glom(tp, Coalesce(GAPS_SUMMARY, default={})))
 
-        wb, scores_writer, findings_writer, tags_writer = init_workbook(excel_template_name)
+        wb, scores_writer, findings_writer, tags_writer, third_party_writer = init_workbook(excel_template_name)
 
         for tag in glom(tp, Coalesce("tags", default=[])):
             tags_writer({"tag": tag, "company_name": company_name})
@@ -182,10 +185,14 @@ def map_analytics(excel_template_name, report_template_name, reports_from, debug
         for score in scores:
             scores_writer(score)
 
+        # Write third party metadata
+        third_party_writer(tp)
+
         # Finalize each writer (fix width, ETC)
         findings_writer.finalizer()
         scores_writer.finalizer()
         tags_writer.finalizer()
+        third_party_writer.finalizer()
 
         output_filename = f'{re.sub("[^A-Za-z0-9 &]+", "", company_name).replace(" ", "-")}_{report_date}'
         excel_filename = f"{output_filename}.xlsx"

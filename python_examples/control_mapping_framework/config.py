@@ -23,6 +23,7 @@ YESTERDAY = (datetime.datetime.utcnow().replace(tzinfo=UTC) - datetime.timedelta
 CONTROL_SCORES = "Answers"
 COMPANY_TAGS = "Company Tags"
 GAPS_TABLE = "Control Gaps (Findings)"
+THIRD_PARTY_TABLE = "Vendor Metadata"
 
 VALIDATION_LABELS = {
     "FullyValidated": "Fully Validated",
@@ -45,11 +46,20 @@ def validation_label(val):
 TP_COLUMNS = [
     ["Company Name", "name", "blue"],
     ["Company URL", "primary_url", "blue"],
-    ["Impact", "impact_label", "orange"],
-    ["Impact Value", "impact_score", "orange"],
     ["Likelihood", "likelihood_label", "orange"],
     ["Likelihood Value", "likelihood_score", "orange"],
+    ["Impact", "impact_label", "orange"],
+    ["Impact Value", "impact_score", "orange"],
+    ["Assessment State", "assessment_status"],
+    ["Assessment Progress", "assessment_progress"],
+    ["Requested Completion Date", "assessment_requested_completion_date"],
+    ["Assessment Completion Date", "assessment_completion_date"],
+    ["Report order status", "subscription_status"],
+    ["Report tier", "subscription_tier"],
+    ["Report validated", "subscription_validated"],
+    ["Report available", "subscription_available"],
     ["Industry", "industry"],
+    ["Tags", "tags"],
 ]
 
 TP_MAPPING = {
@@ -57,6 +67,15 @@ TP_MAPPING = {
     "likelihood_score": Coalesce("inherent_risk.likelihood_score", default=None),
     "impact_label": Coalesce("inherent_risk.impact_label", default=None),
     "impact_score": Coalesce("inherent_risk.impact_score", default=None),
+    "assessment_status": Coalesce("assessment.status", default=None),
+    "assessment_progress": Coalesce("assessment.progress", default=None),
+    "assessment_requested_completion_date": Coalesce("assessment.requested_completion_date", default=None),
+    "assessment_completion_date": Coalesce("assessment.completion_date", default=None),
+    "subscription_status": Coalesce("subscription.status", default=None),
+    "subscription_tier": Coalesce("subscription.tier", default=None),
+    "subscription_available": Coalesce("subscription.is_report_available", default=None),
+    "subscription_validated": Coalesce("subscription.is_validated", default=None),
+    "tags": (Coalesce("tags", default=[]), ",".join),
 }
 
 GAPS_COLUMNS = [
