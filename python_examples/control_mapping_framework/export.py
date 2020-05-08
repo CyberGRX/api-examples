@@ -210,7 +210,13 @@ def excel_to_report(excel_report_name, report_template_name):
         with open(json_file) as f:
             metadata = json.load(f)
 
-    create_report(excel_report_name, report_template_name, f"{os.path.splitext(file_name)[0]}.docx", metadata=metadata, debug=False)
+    create_report(
+        excel_report_name,
+        report_template_name,
+        f"{os.path.splitext(file_name)[0]}.docx",
+        metadata=metadata,
+        debug=False,
+    )
 
 
 @click.command()
