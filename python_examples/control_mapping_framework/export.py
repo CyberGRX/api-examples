@@ -42,7 +42,8 @@ from config import (
 
 def create_sheet(wb, sheet_name):
     try:
-        wb[sheet_name]
+        sheet = wb[sheet_name]
+        sheet.delete_rows(2, amount=len([r for r in sheet]))
     except KeyError:
         wb.create_sheet(sheet_name)
 
