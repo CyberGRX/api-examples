@@ -175,6 +175,20 @@ def date_or_none(value):
     return datetime.strptime(value, "%Y-%m-%d") if value else None
 
 
+def category_match(category):
+    def matcher(value):
+        if not value:
+            return None
+
+        for v in value:
+            if v["category"] == category:
+                return v
+
+        return None
+
+    return matcher
+
+
 def _cell_value(cell):
     return "{}".format(cell.value).strip() if cell and cell.value else ""
 

@@ -227,9 +227,10 @@ def sync_smart_sheet(sheet_name, sheet_id, skip_rows_without_orders):
     smart_sheet_vendors = [v for v in all_smart_sheet_vendors if v["record_has_url_and_address"]]
 
     # Load all third parties skipping residual risk
-    uri = api + "/bulk-v1/third-parties?skip_residual_risk=true"
+    uri = api + "/bulk-v1/third-parties"
     print("Fetching third parties from " + uri + " this can take some time.")
     response = requests.get(uri, headers={"Authorization": token.strip()})
+
     grx_vendors = glom(json.loads(response.content.decode("utf-8")), ([GRX_COMPANY_SCHEMA]))
     grx_custom_ids = set([v["custom_id"] for v in grx_vendors if v["custom_id"]])
 

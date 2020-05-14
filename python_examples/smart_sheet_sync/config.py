@@ -18,6 +18,7 @@ from openpyxl import Workbook, load_workbook
 from tqdm import tqdm
 from utils import (
     split,
+    category_match,
     normalize_vendor,
     lookup_sheet_id,
     skip_falsy,
@@ -92,6 +93,38 @@ SMART_SHEET_UPDATE_COLUMNS = {
         "spec": "grx.assessment_requested_completion_date",
     },
 }
+
+SMART_SHEET_COLUMNS_FOR_RESIDUAL_RISK_OUTCOMES = {
+    "Inherent Data Loss Score": {
+        "key": "grx_inherent_data_loss_score",
+        "spec": "grx.residual_risk_data_loss_inherent_risk_level",
+    },
+    "Residual Data Loss Score": {
+        "key": "grx_residual_data_loss_score",
+        "spec": "grx.residual_risk_data_loss_residual_risk_level",
+    },
+    "Inherent Disruptive Attack Score": {
+        "key": "grx_inherent_disruptive_attack_score",
+        "spec": "grx.residual_risk_disruptive_attack_inherent_risk_level",
+    },
+    "Residual Disruptive Attack Score": {
+        "key": "grx_residual_disruptive_attack_score",
+        "spec": "grx.residual_risk_disruptive_attack_residual_risk_level",
+    },
+    "Inherent Destructive Attack Score": {
+        "key": "grx_inherent_destructive_attack_score",
+        "spec": "grx.residual_risk_destructive_attack_inherent_risk_level",
+    },
+    "Residual Destructive Attack Score": {
+        "key": "grx_residual_destructive_attack_score",
+        "spec": "grx.residual_risk_destructive_attack_residual_risk_level",
+    },
+    "Inherent Fraud Score": {"key": "grx_inherent_fraud_score", "spec": "grx.residual_risk_fraud_inherent_risk_level",},
+    "Residual Fraud Score": {"key": "grx_residual_fraud_score", "spec": "grx.residual_risk_fraud_residual_risk_level",},
+}
+
+# Ingect columns for residual risk outcomes
+SMART_SHEET_UPDATE_COLUMNS.update(SMART_SHEET_COLUMNS_FOR_RESIDUAL_RISK_OUTCOMES)
 
 # Ingect column keys into header mapping
 for k, v in SMART_SHEET_UPDATE_COLUMNS.items():
@@ -204,6 +237,67 @@ GRX_COMPANY_SCHEMA = {
     "assessment_completion_date": Coalesce("assessment.completion_date", default=None),
     "assessment_requested_completion_date": Coalesce("assessment.requested_completion_date", default=None),
 }
+
+RESIDUAL_RISK_PILLS_SCHEMA = {
+    "residual_risk_data_loss_inherent_risk_level": Coalesce(
+        (
+            Coalesce("residual_risk.residual_risk_outcomes", default=[]),
+            category_match("Data Loss"),
+            "inherent_risk_level",
+        ),
+        default=None,
+    ),
+    "residual_risk_data_loss_residual_risk_level": Coalesce(
+        (
+            Coalesce("residual_risk.residual_risk_outcomes", default=[]),
+            category_match("Data Loss"),
+            "residual_risk_level",
+        ),
+        default=None,
+    ),
+    "residual_risk_disruptive_attack_inherent_risk_level": Coalesce(
+        (
+            Coalesce("residual_risk.residual_risk_outcomes", default=[]),
+            category_match("Disruptive Attack"),
+            "inherent_risk_level",
+        ),
+        default=None,
+    ),
+    "residual_risk_disruptive_attack_residual_risk_level": Coalesce(
+        (
+            Coalesce("residual_risk.residual_risk_outcomes", default=[]),
+            category_match("Disruptive Attack"),
+            "residual_risk_level",
+        ),
+        default=None,
+    ),
+    "residual_risk_destructive_attack_inherent_risk_level": Coalesce(
+        (
+            Coalesce("residual_risk.residual_risk_outcomes", default=[]),
+            category_match("Destructive Attack"),
+            "inherent_risk_level",
+        ),
+        default=None,
+    ),
+    "residual_risk_destructive_attack_residual_risk_level": Coalesce(
+        (
+            Coalesce("residual_risk.residual_risk_outcomes", default=[]),
+            category_match("Destructive Attack"),
+            "residual_risk_level",
+        ),
+        default=None,
+    ),
+    "residual_risk_fraud_inherent_risk_level": Coalesce(
+        (Coalesce("residual_risk.residual_risk_outcomes", default=[]), category_match("Fraud"), "inherent_risk_level",),
+        default=None,
+    ),
+    "residual_risk_fraud_residual_risk_level": Coalesce(
+        (Coalesce("residual_risk.residual_risk_outcomes", default=[]), category_match("Fraud"), "residual_risk_level",),
+        default=None,
+    ),
+}
+
+GRX_COMPANY_SCHEMA.update(RESIDUAL_RISK_PILLS_SCHEMA)
 
 BULK_IMPORT_COLUMNS = [
     ["Third Party Legal or DBA Name", "company_name", "blue"],
