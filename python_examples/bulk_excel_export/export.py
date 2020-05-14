@@ -38,6 +38,7 @@ TP_COLUMNS = [
     ["Report available", "subscription_available"],
     ["Industry", "industry"],
     ["Tags", "tags"],
+    ["Company ID", "id", "blue"],
 ]
 
 TP_MAPPING = {
