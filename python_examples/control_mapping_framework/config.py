@@ -8,15 +8,10 @@
 #
 #
 
-import os
-import re
-import json
-import requests
-from openpyxl import Workbook, load_workbook
-from tqdm import tqdm
-from glom import glom, Check, Coalesce, SKIP, OMIT, Literal
-from pytz import UTC
 import datetime
+
+from glom import Check, Coalesce, SKIP
+from pytz import UTC
 
 YESTERDAY = (datetime.datetime.utcnow().replace(tzinfo=UTC) - datetime.timedelta(days=1)).isoformat()
 
