@@ -13,12 +13,17 @@ from openpyxl import load_workbook
 from openpyxl.cell import Cell, MergedCell
 from jinja2 import Template
 from copy import copy
-from reporting import debug_keys
+from reporting import debug_keys, read_report
 
 
 def process_excel_template(filename, metadata=None, debug=False):
-    wb = load_workbook(filename=filename, data_only=True)
+    if not metadata:
+        metadata = {}
 
+    report_data = read_report(filename)
+    metadata.update(report_data)
+
+    wb = load_workbook(filename=filename, data_only=True)
     for _, sheet in enumerate(wb):
 
         start = None
