@@ -36,16 +36,8 @@ from openpyxl import load_workbook
 from openpyxl.cell import MergedCell
 from reporting import create_report
 from tqdm import tqdm
-from utils import sheet_writer, control_search
+from utils import sheet_writer, control_search, create_sheet
 from excel_utils import process_excel_template
-
-
-def create_sheet(wb, sheet_name):
-    try:
-        sheet = wb[sheet_name]
-        sheet.delete_rows(2, amount=len([r for r in sheet]))
-    except KeyError:
-        wb.create_sheet(sheet_name)
 
 
 def init_workbook(filename):
@@ -130,7 +122,9 @@ def finalize_workbook(wb, excel_filename, debug=False):
     default=YESTERDAY,
 )
 @click.option(
-    "--excel-report", help="Treat the excel template as a Jinja template instead of producing a Word document", is_flag=True,
+    "--excel-report",
+    help="Treat the excel template as a Jinja template instead of producing a Word document",
+    is_flag=True,
 )
 @click.option(
     "--debug", help="Put the script into debug mode, extra data will be preserved in this mode", is_flag=True,
@@ -203,7 +197,7 @@ def map_analytics(excel_template_name, report_template_name, reports_from, excel
 
         finalize_workbook(wb, excel_filename, debug=debug)
         if excel_report:
-            process_excel_template(excel_filename, metadata=tp)
+            process_excel_template(excel_filename, metadata=tp, debug=debug)
         else:
             create_report(excel_filename, report_template_name, f"{output_filename}.docx", metadata=tp, debug=debug)
 
@@ -233,10 +227,7 @@ def run_excel_template(excel_template_name, debug_json):
 
     shutil.copyfile(excel_template_name, excel_filename)
 
-    process_excel_template(
-        excel_filename,
-        metadata=metadata,
-    )
+    process_excel_template(excel_filename, metadata=metadata, debug=True)
 
 
 @click.command()

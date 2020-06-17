@@ -19,6 +19,14 @@ from openpyxl.styles.fills import FILL_SOLID
 _VLOOKUP_REGEX = re.compile(r'.*?VLOOKUP\("(?P<control>\d+\.\d+\.\d+\.\d+).*?".*')
 
 
+def create_sheet(wb, sheet_name):
+    try:
+        sheet = wb[sheet_name]
+        sheet.delete_rows(2, amount=len([r for r in sheet]))
+    except KeyError:
+        wb.create_sheet(sheet_name)
+
+
 def cell_value(cell):
     return "{}".format(cell.value).strip() if cell and cell.value else ""
 
