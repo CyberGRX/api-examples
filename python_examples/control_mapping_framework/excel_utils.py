@@ -56,7 +56,7 @@ def process_excel_template(filename, metadata=None, debug=False):
 
         raw_template = "\n".join(template)
         if debug:
-            print(raw_template.replace("-=+", ""))
+            print("Raw Template:\n" + raw_template.replace("-=+", ""))
 
         jinga_template = Template(raw_template)
         processed = jinga_template.render(metadata)
@@ -66,7 +66,7 @@ def process_excel_template(filename, metadata=None, debug=False):
         for i, row in enumerate(processed.splitlines()):
             for j, c in enumerate(row.split("-=+")):
                 cell = sheet.cell(row=start + i + 1, column=j + 1)
-                cell.value = c
+                cell.value = c.replace("<w:br/>", "\n")
                 try:
                     cell.font = copy(style[j]["font"])
                     cell.border = copy(style[j]["border"])
