@@ -55,6 +55,9 @@ def process_excel_template(filename, metadata=None, debug=False):
             continue
 
         jinga_template = Template("\n".join(template))
+        if debug:
+            print(jinga_template.replace("-=+", ""))
+
         processed = jinga_template.render(metadata)
 
         sheet.delete_rows(start + 1, amount=end - start + 1)
