@@ -54,10 +54,11 @@ def process_excel_template(filename, metadata=None, debug=False):
         if not template or start is None or end is None:
             continue
 
-        jinga_template = Template("\n".join(template))
+        raw_template = "\n".join(template)
         if debug:
-            print(jinga_template.replace("-=+", ""))
+            print(raw_template.replace("-=+", ""))
 
+        jinga_template = Template(raw_template)
         processed = jinga_template.render(metadata)
 
         sheet.delete_rows(start + 1, amount=end - start + 1)
