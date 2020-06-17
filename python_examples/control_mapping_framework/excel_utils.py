@@ -73,7 +73,7 @@ def process_excel_template(filename, metadata=None, debug=False):
         for i, row in enumerate(processed.splitlines()):
             for j, c in enumerate(row.split("-=+")):
                 cell = sheet.cell(row=start + i + 1, column=j + 1)
-                cell.value = re.sub(r"\n\n+", "\n\n", c.replace("<w:br/>", "\n"))
+                cell.value = re.sub(r"\n\n+", "\n\n", c.replace("<w:br/>", "\n")).strip()
                 try:
                     cell.font = copy(style[j]["font"])
                     cell.border = copy(style[j]["border"])
