@@ -8,12 +8,14 @@
 #
 #
 
-from utils import cell_value, create_sheet
+import re
+from copy import copy
+
+from jinja2 import Template
 from openpyxl import load_workbook
 from openpyxl.cell import Cell, MergedCell
-from jinja2 import Template
-from copy import copy
 from reporting import debug_keys, read_report
+from utils import cell_value, create_sheet
 
 
 def process_excel_template(filename, metadata=None, debug=False):
@@ -71,7 +73,7 @@ def process_excel_template(filename, metadata=None, debug=False):
         for i, row in enumerate(processed.splitlines()):
             for j, c in enumerate(row.split("-=+")):
                 cell = sheet.cell(row=start + i + 1, column=j + 1)
-                cell.value = c.replace("<w:br/>", "\n")
+                cell.value = re.sub(r"\n\n+", "\n\n", c.replace("<w:br/>", "\n"))
                 try:
                     cell.font = copy(style[j]["font"])
                     cell.border = copy(style[j]["border"])
