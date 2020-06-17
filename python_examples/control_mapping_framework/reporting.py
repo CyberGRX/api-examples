@@ -7,17 +7,16 @@
 #            \/\/          \/     \/               \/        \/      \_/
 #
 #
+import json
 import logging
 import os
-import stringcase
 import re
-import json
 from collections import defaultdict
-from openpyxl import Workbook, load_workbook
-from docx.shared import Cm
-from docxtpl import DocxTemplate, InlineImage
 
+import stringcase
+from docxtpl import DocxTemplate
 from jinja2 import Environment, DebugUndefined
+from openpyxl import load_workbook
 
 logger = logging.getLogger(__name__)
 

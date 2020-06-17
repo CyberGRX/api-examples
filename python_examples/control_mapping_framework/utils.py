@@ -9,23 +9,26 @@
 #
 
 import re
-import os
-import json
-import requests
-from openpyxl import Workbook
-from openpyxl.styles.fills import FILL_SOLID
-from openpyxl.styles import Color, PatternFill, Font, Border, Side
-from openpyxl.styles import colors
-from openpyxl.cell import Cell, MergedCell
-from tqdm import tqdm
+
 from glom import glom
-
-
-def _cell_value(cell):
-    return "{}".format(cell.value).strip() if cell and cell.value else ""
-
+from openpyxl.cell import Cell, MergedCell
+from openpyxl.styles import PatternFill
+from openpyxl.styles import colors
+from openpyxl.styles.fills import FILL_SOLID
 
 _VLOOKUP_REGEX = re.compile(r'.*?VLOOKUP\("(?P<control>\d+\.\d+\.\d+\.\d+).*?".*')
+
+
+def create_sheet(wb, sheet_name):
+    try:
+        sheet = wb[sheet_name]
+        sheet.delete_rows(2, amount=len([r for r in sheet]))
+    except KeyError:
+        wb.create_sheet(sheet_name)
+
+
+def cell_value(cell):
+    return "{}".format(cell.value).strip() if cell and cell.value else ""
 
 
 def control_search(row):
@@ -33,7 +36,7 @@ def control_search(row):
 
     for cell in row.values():
         if isinstance(cell, (Cell, MergedCell)):
-            cell = _cell_value(cell)
+            cell = cell_value(cell)
 
         found.update(_VLOOKUP_REGEX.findall(cell))
 
@@ -118,7 +121,7 @@ def sheet_writer(wb, name, columns, mapping=None, insert_controls=None):
                     row += 1
 
             for column_cells in sheet.columns:
-                length = min(125, max(9, max(len(_cell_value(cell)) + 1 for cell in column_cells)),)
+                length = min(125, max(9, max(len(cell_value(cell)) + 1 for cell in column_cells)),)
 
                 for cell in column_cells:
                     cell.alignment = cell.alignment.copy(wrapText=True)

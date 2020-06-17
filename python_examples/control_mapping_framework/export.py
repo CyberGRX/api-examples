@@ -8,22 +8,15 @@
 #
 #
 
+import json
 import os
 import re
-import json
-import requests
+from urllib.parse import quote
+import shutil
 
 import click
-from urllib.parse import quote
-from openpyxl import Workbook, load_workbook
-from openpyxl.cell import MergedCell
+import requests
 import xlwings as xw
-from tqdm import tqdm
-from glom import glom, Coalesce
-
-from reporting import create_report
-
-from utils import sheet_writer, control_search
 from config import (
     YESTERDAY,
     CONTROL_SCORES,
@@ -38,14 +31,13 @@ from config import (
     GAPS_SUMMARY,
     THIRD_PARTY_TABLE,
 )
-
-
-def create_sheet(wb, sheet_name):
-    try:
-        sheet = wb[sheet_name]
-        sheet.delete_rows(2, amount=len([r for r in sheet]))
-    except KeyError:
-        wb.create_sheet(sheet_name)
+from glom import glom, Coalesce
+from openpyxl import load_workbook
+from openpyxl.cell import MergedCell
+from reporting import create_report
+from tqdm import tqdm
+from utils import sheet_writer, control_search, create_sheet
+from excel_utils import process_excel_template
 
 
 def init_workbook(filename):
@@ -130,13 +122,18 @@ def finalize_workbook(wb, excel_filename, debug=False):
     default=YESTERDAY,
 )
 @click.option(
+    "--excel-report",
+    help="Treat the excel template as a Jinja template instead of producing a Word document",
+    is_flag=True,
+)
+@click.option(
     "--debug", help="Put the script into debug mode, extra data will be preserved in this mode", is_flag=True,
 )
-def map_analytics(excel_template_name, report_template_name, reports_from, debug):
+def map_analytics(excel_template_name, report_template_name, reports_from, excel_report, debug):
     if not os.path.exists(excel_template_name):
         raise Exception(f"The --excel-template-name={excel_template_name} does not exist")
 
-    if not os.path.exists(report_template_name):
+    if not excel_report and not os.path.exists(report_template_name):
         raise Exception(f"The --report-template-name={report_template_name} does not exist")
 
     for f in [f for f in os.listdir(".") if os.path.isfile(f)]:
@@ -199,7 +196,38 @@ def map_analytics(excel_template_name, report_template_name, reports_from, debug
         excel_filename = f"{output_filename}.xlsx"
 
         finalize_workbook(wb, excel_filename, debug=debug)
-        create_report(excel_filename, report_template_name, f"{output_filename}.docx", metadata=tp, debug=debug)
+        if excel_report:
+            process_excel_template(excel_filename, metadata=tp, debug=debug)
+        else:
+            create_report(excel_filename, report_template_name, f"{output_filename}.docx", metadata=tp, debug=debug)
+
+
+@click.command()
+@click.option(
+    "--excel-template-name",
+    help="Filename of the controls mapping template",
+    required=False,
+    default="excel-template.xlsx",
+)
+@click.option(
+    "--debug-json", help="Process this debug JSON and create a new report", required=True,
+)
+def run_excel_template(excel_template_name, debug_json):
+    if not os.path.exists(excel_template_name):
+        raise Exception(f"{excel_template_name} does not exist.")
+
+    if not os.path.exists(debug_json):
+        raise Exception(f"{debug_json} does not exist.")
+
+    with open(debug_json) as f:
+        metadata = json.load(f)
+
+    json_filename = os.path.basename(debug_json)
+    excel_filename = f"{os.path.splitext(json_filename)[0]}.xlsx"
+
+    shutil.copyfile(excel_template_name, excel_filename)
+
+    process_excel_template(excel_filename, metadata=metadata, debug=True)
 
 
 @click.command()
@@ -247,6 +275,7 @@ def cli():
 
 
 cli.add_command(map_analytics)
+cli.add_command(run_excel_template)
 cli.add_command(excel_to_report)
 cli.add_command(test_excel_template)
 
