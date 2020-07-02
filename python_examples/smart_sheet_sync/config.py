@@ -119,8 +119,14 @@ SMART_SHEET_COLUMNS_FOR_RESIDUAL_RISK_OUTCOMES = {
         "key": "grx_residual_destructive_attack_score",
         "spec": "grx.residual_risk_destructive_attack_residual_risk_level",
     },
-    "Inherent Fraud Score": {"key": "grx_inherent_fraud_score", "spec": "grx.residual_risk_fraud_inherent_risk_level",},
-    "Residual Fraud Score": {"key": "grx_residual_fraud_score", "spec": "grx.residual_risk_fraud_residual_risk_level",},
+    "Inherent Fraud Score": {
+        "key": "grx_inherent_fraud_score",
+        "spec": "grx.residual_risk_fraud_inherent_risk_level",
+    },
+    "Residual Fraud Score": {
+        "key": "grx_residual_fraud_score",
+        "spec": "grx.residual_risk_fraud_residual_risk_level",
+    },
 }
 
 # Ingect columns for residual risk outcomes
@@ -288,11 +294,19 @@ RESIDUAL_RISK_PILLS_SCHEMA = {
         default=None,
     ),
     "residual_risk_fraud_inherent_risk_level": Coalesce(
-        (Coalesce("residual_risk.residual_risk_outcomes", default=[]), category_match("Fraud"), "inherent_risk_level",),
+        (
+            Coalesce("residual_risk.residual_risk_outcomes", default=[]),
+            category_match("Fraud"),
+            "inherent_risk_level",
+        ),
         default=None,
     ),
     "residual_risk_fraud_residual_risk_level": Coalesce(
-        (Coalesce("residual_risk.residual_risk_outcomes", default=[]), category_match("Fraud"), "residual_risk_level",),
+        (
+            Coalesce("residual_risk.residual_risk_outcomes", default=[]),
+            category_match("Fraud"),
+            "residual_risk_level",
+        ),
         default=None,
     ),
 }

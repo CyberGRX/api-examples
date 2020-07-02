@@ -110,7 +110,9 @@ def sheet_writer(wb, name, columns, mapping=None, insert_controls=None):
                 missing_controls.sort()
                 for control in missing_controls:
                     write_value(row, 1, control)
-                    write_value(row, 2, "Inserted as Not Applicable, the vendor's assessment did not ask this question")
+                    write_value(
+                        row, 2, "Inserted as Not Applicable, the vendor's assessment did not ask this question"
+                    )
                     write_value(row, 3, "AnsweredNotApplicable")
                     write_value(row, 4, "")
                     write_value(row, 5, "")

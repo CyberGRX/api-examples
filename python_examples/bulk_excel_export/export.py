@@ -13,7 +13,7 @@ import json
 import requests
 from openpyxl import Workbook
 from tqdm import tqdm
-from utils import sheet_writer
+from utils import sheet_writer, inherent_risk_level_from_tier
 from glom import glom, Coalesce
 
 THIRD_PARTY_TABLE = "Third Parties"
@@ -39,6 +39,7 @@ TP_COLUMNS = [
     ["Industry", "industry"],
     ["Tags", "tags"],
     ["Company ID", "id", "blue"],
+    ["Inherent Risk", "inherent_risk", "orange"],
 ]
 
 TP_MAPPING = {
@@ -46,6 +47,7 @@ TP_MAPPING = {
     "likelihood_score": Coalesce("inherent_risk.likelihood_score", default=None),
     "impact_label": Coalesce("inherent_risk.impact_label", default=None),
     "impact_score": Coalesce("inherent_risk.impact_score", default=None),
+    "inherent_risk": (Coalesce("inherent_risk.recommended_report_tier", default=0), inherent_risk_level_from_tier,),
     "assessment_status": Coalesce("assessment.status", default=None),
     "assessment_progress": Coalesce("assessment.progress", default=None),
     "assessment_requested_completion_date": Coalesce("assessment.requested_completion_date", default=None),
