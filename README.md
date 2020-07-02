@@ -1,10 +1,10 @@
 # Example CyberGRX API Integrations
 
-This is a general purpose set of examples for the [CyberGRX API](https://api.cybergrx.com/v1/swagger/).  These examples are intented to give practical guidance for implementations with the CyberGRX API.  The CyberGRX API is self documenting with swagger, however these examples are not using auto-generated client stubs. 
+This is a general purpose set of examples for the [CyberGRX API](https://api.cybergrx.com/v1/swagger/).  These examples are intented to give practical guidance for implementations with the CyberGRX API.  The CyberGRX API is self documenting with swagger, however these examples are not using auto-generated client stubs.
 
 **Notes:**
 - The CyberGRX API and Bulk API are versioned and will maintain backwards compatibility.
-- You will need to pass a valid API token in the `Authorization` header to gain access to the CyberGRX API.  
+- You will need to pass a valid API token in the `Authorization` header to gain access to the CyberGRX API.
   - The [How To Guide](./HOW-TO.md) describes how to accomplish this.
 - The CyberGRX API is self documenting using the formal API Swagger specification:
   - [CyberGRX API](https://api.cybergrx.com/v1/swagger/) allows data retrieval via standard pagination.

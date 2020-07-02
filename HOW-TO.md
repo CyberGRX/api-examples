@@ -1,5 +1,5 @@
 # Retrieve a CyberGRX API Token
-You must have an active CyberGRX account that has the ability to manage users. 
+You must have an active CyberGRX account that has the ability to manage users.
 
 The workflow is pretty simple:
  - Enter `Manage my company user accounts` using the top right navigational element.

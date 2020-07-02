@@ -7,7 +7,7 @@ The first step is to configure a virtual environment for the application depende
 - `source env/bin/activate`
 - `pip install -r requirements.txt`
 
-At this point you are all setup to run the example, but before you do, create a file that holds your API token. 
+At this point you are all setup to run the example, but before you do, create a file that holds your API token.
 - `vi .auth-token` add the following lines to this file and save it:
 ```
 export CYBERGRX_API_TOKEN="API-V1 TOKEN FROM UI"

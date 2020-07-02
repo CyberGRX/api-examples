@@ -27,11 +27,13 @@ INHERENT_RISK_FROM_RECOMMENDATION = {
     3: "Low Exposure",
 }
 
+
 def inherent_risk_level_from_tier(value):
     try:
         return INHERENT_RISK_FROM_RECOMMENDATION[value]
     except KeyError:
         return INHERENT_RISK_FROM_RECOMMENDATION[0]
+
 
 def _cell_value(cell):
     return "{}".format(cell.value).strip() if cell and cell.value else ""
