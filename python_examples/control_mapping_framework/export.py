@@ -38,6 +38,7 @@ from reporting import create_report
 from tqdm import tqdm
 from utils import sheet_writer, control_search, create_sheet
 from excel_utils import process_excel_template
+from ecosystem_utils import init_ecosystem_writer
 
 
 def init_workbook(filename):
@@ -122,6 +123,9 @@ def finalize_workbook(wb, excel_filename, debug=False):
     default=YESTERDAY,
 )
 @click.option(
+    "--ecosystem", help="Produce an ecosystem level excel report", is_flag=True,
+)
+@click.option(
     "--excel-report",
     help="Treat the excel template as a Jinja template instead of producing a Word document",
     is_flag=True,
@@ -129,7 +133,7 @@ def finalize_workbook(wb, excel_filename, debug=False):
 @click.option(
     "--debug", help="Put the script into debug mode, extra data will be preserved in this mode", is_flag=True,
 )
-def map_analytics(excel_template_name, report_template_name, reports_from, excel_report, debug):
+def map_analytics(excel_template_name, report_template_name, reports_from, ecosystem, excel_report, debug):
     if not os.path.exists(excel_template_name):
         raise Exception(f"The --excel-template-name={excel_template_name} does not exist")
 
@@ -148,6 +152,8 @@ def map_analytics(excel_template_name, report_template_name, reports_from, excel
     token = os.environ.get("CYBERGRX_API_TOKEN", None)
     if not token:
         raise Exception("The environment variable CYBERGRX_API_TOKEN must be set")
+
+    ecosystem_writer = init_ecosystem_writer(ecosystem, excel_template_name)
 
     uri = f"{api}/bulk-v1/third-parties?report_date={quote(reports_from)}"
     print(f"Fetching third parties from {uri} this can take some time.")
@@ -174,17 +180,22 @@ def map_analytics(excel_template_name, report_template_name, reports_from, excel
         wb, scores_writer, findings_writer, tags_writer, third_party_writer = init_workbook(excel_template_name)
 
         for tag in glom(tp, Coalesce("tags", default=[])):
-            tags_writer({"tag": tag, "company_name": company_name})
+            tag_meta = {"tag": tag, "company_name": company_name}
+            tags_writer(tag_meta)
+            ecosystem_writer.tags_writer(tag_meta)
 
         for finding in glom(tp, Coalesce("residual_risk.findings", default=[])):
             finding["company_name"] = company_name
             findings_writer(finding)
+            ecosystem_writer.findings_writer(finding)
 
         for score in scores:
             scores_writer(score)
+            ecosystem_writer.scores_writer(score, company_name)
 
         # Write third party metadata
         third_party_writer(tp)
+        ecosystem_writer.third_party_writer(tp)
 
         # Finalize each writer (fix width, ETC)
         findings_writer.finalizer()
@@ -200,6 +211,10 @@ def map_analytics(excel_template_name, report_template_name, reports_from, excel
             process_excel_template(excel_filename, metadata=tp, debug=debug)
         else:
             create_report(excel_filename, report_template_name, f"{output_filename}.docx", metadata=tp, debug=debug)
+
+        ecosystem_writer.procecss_excel(excel_filename, company_name)
+
+    ecosystem_writer.finalizer()
 
 
 @click.command()
