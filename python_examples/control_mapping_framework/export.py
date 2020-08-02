@@ -11,8 +11,8 @@
 import json
 import os
 import re
-from urllib.parse import quote
 import shutil
+from urllib.parse import quote
 
 import click
 import requests
@@ -31,14 +31,14 @@ from config import (
     GAPS_SUMMARY,
     THIRD_PARTY_TABLE,
 )
+from ecosystem_utils import init_ecosystem_writer
+from excel_utils import process_excel_template
 from glom import glom, Coalesce
 from openpyxl import load_workbook
 from openpyxl.cell import MergedCell
 from reporting import create_report
 from tqdm import tqdm
 from utils import sheet_writer, control_search, create_sheet
-from excel_utils import process_excel_template
-from ecosystem_utils import init_ecosystem_writer
 
 
 def init_workbook(filename):
@@ -123,7 +123,7 @@ def finalize_workbook(wb, excel_filename, debug=False):
     default=YESTERDAY,
 )
 @click.option(
-    "--ecosystem", help="Produce an ecosystem level excel report", is_flag=True,
+    "--ecosystem-template", help="Produce an ecosystem level excel report from this template", required=False,
 )
 @click.option(
     "--excel-report",
@@ -133,7 +133,7 @@ def finalize_workbook(wb, excel_filename, debug=False):
 @click.option(
     "--debug", help="Put the script into debug mode, extra data will be preserved in this mode", is_flag=True,
 )
-def map_analytics(excel_template_name, report_template_name, reports_from, ecosystem, excel_report, debug):
+def map_analytics(excel_template_name, report_template_name, reports_from, ecosystem_template, excel_report, debug):
     if not os.path.exists(excel_template_name):
         raise Exception(f"The --excel-template-name={excel_template_name} does not exist")
 
@@ -141,7 +141,7 @@ def map_analytics(excel_template_name, report_template_name, reports_from, ecosy
         raise Exception(f"The --report-template-name={report_template_name} does not exist")
 
     for f in [f for f in os.listdir(".") if os.path.isfile(f)]:
-        if f in [excel_template_name, report_template_name]:
+        if f in [excel_template_name, report_template_name, ecosystem_template]:
             continue
 
         if os.path.splitext(f)[1] in [".xlsx", ".docx", ".json"]:
@@ -153,7 +153,7 @@ def map_analytics(excel_template_name, report_template_name, reports_from, ecosy
     if not token:
         raise Exception("The environment variable CYBERGRX_API_TOKEN must be set")
 
-    ecosystem_writer = init_ecosystem_writer(ecosystem, excel_template_name)
+    ecosystem_writer = init_ecosystem_writer(ecosystem_template)
 
     uri = f"{api}/bulk-v1/third-parties?report_date={quote(reports_from)}"
     print(f"Fetching third parties from {uri} this can take some time.")

@@ -7,9 +7,7 @@
 #            \/\/          \/     \/               \/        \/      \_/
 #
 #
-
 from attrdict import AttrDict
-
 from config import (
     CONTROL_SCORES,
     GAPS_TABLE,
@@ -24,13 +22,53 @@ from config import (
     RESIDUAL_RISK_TABLE,
     RESIDUAL_RISK_COLUMNS,
 )
-from openpyxl import Workbook
-from utils import sheet_writer, create_sheet
-from glom import glom, Check, Coalesce, SKIP
+from glom import glom, Coalesce
+from openpyxl import load_workbook
+from stringcase import snakecase
+from utils import sheet_writer, create_sheet, cell_value
 
 
-def init_ecosystem_writer(ecosystem, excel_template_name):
-    if not ecosystem:
+def read_ecosystem_template(wb):
+    sheet = next((s for _, s in enumerate(wb)))
+
+    title = sheet.title
+    if title == "Sheet1":
+        title = "Mapped Controls"
+        sheet.title = title
+
+    mapping = {}
+    for idx, header in enumerate(next(sheet.iter_rows())):
+        mapping[snakecase(cell_value(header).lower())] = idx + 1
+
+    if "company_name" not in mapping:
+        raise Exception(f"There is no Company Name column in {title}")
+
+    row_idx = 2
+
+    def process_excel(excel_filename, company_name):
+        nonlocal row_idx
+        source_wb = load_workbook(excel_filename)
+        try:
+            source_sheet = source_wb[title]
+        except:
+            source_sheet = source_wb["Mapped Controls"]
+
+        rowiterator = iter(source_sheet.rows)
+        source_mapping = {}
+        for _idx, _header in enumerate(next(rowiterator)):
+            source_mapping[_idx] = snakecase(cell_value(_header).lower())
+
+        for row in rowiterator:
+            sheet.cell(row=row_idx, column=mapping["company_name"]).value = company_name
+            for i, col in enumerate(row):
+                sheet.cell(row=row_idx, column=mapping[source_mapping[i]]).value = col.value
+            row_idx += 1
+
+    return process_excel
+
+
+def init_ecosystem_writer(ecosystem_template):
+    if not ecosystem_template:
         return AttrDict(
             {
                 "tags_writer": lambda tag_meta: False,
@@ -42,7 +80,8 @@ def init_ecosystem_writer(ecosystem, excel_template_name):
             }
         )
 
-    wb = Workbook()
+    wb = load_workbook(ecosystem_template)
+    process_excel = read_ecosystem_template(wb)
     create_sheet(wb, CONTROL_SCORES)
     create_sheet(wb, GAPS_TABLE)
     create_sheet(wb, COMPANY_TAGS)
@@ -64,9 +103,6 @@ def init_ecosystem_writer(ecosystem, excel_template_name):
         for outcome in glom(tp, Coalesce("residual_risk.residual_risk_outcomes", default=[])):
             outcome["company_name"] = tp["name"]
             residual_risk_writer(outcome)
-
-    def process_excel(excel_filename, company_name):
-        pass
 
     def finalizer():
         # Finalize each writer (fix width, ETC)
