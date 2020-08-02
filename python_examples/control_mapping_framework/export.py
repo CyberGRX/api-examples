@@ -190,8 +190,9 @@ def map_analytics(excel_template_name, report_template_name, reports_from, ecosy
             ecosystem_writer.findings_writer(finding)
 
         for score in scores:
+            score["company_name"] = company_name
             scores_writer(score)
-            ecosystem_writer.scores_writer(score, company_name)
+            ecosystem_writer.scores_writer(score)
 
         # Write third party metadata
         third_party_writer(tp)
