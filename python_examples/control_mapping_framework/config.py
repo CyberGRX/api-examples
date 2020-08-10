@@ -15,10 +15,12 @@ from pytz import UTC
 
 YESTERDAY = (datetime.datetime.utcnow().replace(tzinfo=UTC) - datetime.timedelta(days=1)).isoformat()
 
+MAPPED_CONTROLS_TABLE = "Mapped Controls"
 CONTROL_SCORES = "Answers"
 COMPANY_TAGS = "Company Tags"
 GAPS_TABLE = "Control Gaps (Findings)"
 THIRD_PARTY_TABLE = "Vendor Metadata"
+RESIDUAL_RISK_TABLE = "Residual Risk"
 
 VALIDATION_LABELS = {
     "FullyValidated": "Fully Validated",
@@ -130,4 +132,13 @@ SCORE_MAPPING = {
 TAG_COLUMNS = [
     ["Company Name", "company_name", "blue"],
     ["Tag", "tag"],
+]
+
+RESIDUAL_RISK_COLUMNS = [
+    ["Company Name", "company_name", "blue"],
+    ["Category", "category"],
+    ["Inherent Risk", "inherent_risk_label", "orange"],
+    ["Inherent Risk Level", "inherent_risk_level", "orange"],
+    ["Residual Risk", "residual_risk_label", "orange"],
+    ["Residual Risk Level", "residual_risk_level", "orange"],
 ]

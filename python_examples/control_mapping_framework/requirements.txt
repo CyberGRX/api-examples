@@ -13,3 +13,5 @@ xlwings==0.18.0
 
 # Word template support
 docxtpl==0.9.0
+
+attrdict==2.0.1

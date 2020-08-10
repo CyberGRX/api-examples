@@ -11,8 +11,8 @@
 import json
 import os
 import re
-from urllib.parse import quote
 import shutil
+from urllib.parse import quote
 
 import click
 import requests
@@ -30,21 +30,27 @@ from config import (
     TAG_COLUMNS,
     GAPS_SUMMARY,
     THIRD_PARTY_TABLE,
+    MAPPED_CONTROLS_TABLE,
 )
+from ecosystem_utils import init_ecosystem_writer
+from excel_utils import process_excel_template
 from glom import glom, Coalesce
 from openpyxl import load_workbook
 from openpyxl.cell import MergedCell
 from reporting import create_report
 from tqdm import tqdm
 from utils import sheet_writer, control_search, create_sheet
-from excel_utils import process_excel_template
 
 
 def init_workbook(filename):
     wb = load_workbook(filename=filename)
 
-    main = next((s for _, s in enumerate(wb)))
-    main.title = "Mapped Controls"
+    try:
+        main = wb[MAPPED_CONTROLS_TABLE]
+    except KeyError:
+        main = next((s for _, s in enumerate(wb)))
+        main.title = MAPPED_CONTROLS_TABLE
+
     insert_controls = set()
     for row in main:
         insert_controls.update(control_search({idx: col for idx, col in enumerate(row)}))
@@ -122,6 +128,9 @@ def finalize_workbook(wb, excel_filename, debug=False):
     default=YESTERDAY,
 )
 @click.option(
+    "--ecosystem-template", help="Produce an ecosystem level excel report from this template", required=False,
+)
+@click.option(
     "--excel-report",
     help="Treat the excel template as a Jinja template instead of producing a Word document",
     is_flag=True,
@@ -129,7 +138,7 @@ def finalize_workbook(wb, excel_filename, debug=False):
 @click.option(
     "--debug", help="Put the script into debug mode, extra data will be preserved in this mode", is_flag=True,
 )
-def map_analytics(excel_template_name, report_template_name, reports_from, excel_report, debug):
+def map_analytics(excel_template_name, report_template_name, reports_from, ecosystem_template, excel_report, debug):
     if not os.path.exists(excel_template_name):
         raise Exception(f"The --excel-template-name={excel_template_name} does not exist")
 
@@ -137,7 +146,7 @@ def map_analytics(excel_template_name, report_template_name, reports_from, excel
         raise Exception(f"The --report-template-name={report_template_name} does not exist")
 
     for f in [f for f in os.listdir(".") if os.path.isfile(f)]:
-        if f in [excel_template_name, report_template_name]:
+        if f in [excel_template_name, report_template_name, ecosystem_template]:
             continue
 
         if os.path.splitext(f)[1] in [".xlsx", ".docx", ".json"]:
@@ -148,6 +157,8 @@ def map_analytics(excel_template_name, report_template_name, reports_from, excel
     token = os.environ.get("CYBERGRX_API_TOKEN", None)
     if not token:
         raise Exception("The environment variable CYBERGRX_API_TOKEN must be set")
+
+    ecosystem_writer = init_ecosystem_writer(ecosystem_template)
 
     uri = f"{api}/bulk-v1/third-parties?report_date={quote(reports_from)}"
     print(f"Fetching third parties from {uri} this can take some time.")
@@ -174,17 +185,23 @@ def map_analytics(excel_template_name, report_template_name, reports_from, excel
         wb, scores_writer, findings_writer, tags_writer, third_party_writer = init_workbook(excel_template_name)
 
         for tag in glom(tp, Coalesce("tags", default=[])):
-            tags_writer({"tag": tag, "company_name": company_name})
+            tag_meta = {"tag": tag, "company_name": company_name}
+            tags_writer(tag_meta)
+            ecosystem_writer.tags_writer(tag_meta)
 
         for finding in glom(tp, Coalesce("residual_risk.findings", default=[])):
             finding["company_name"] = company_name
             findings_writer(finding)
+            ecosystem_writer.findings_writer(finding)
 
         for score in scores:
+            score["company_name"] = company_name
             scores_writer(score)
+            ecosystem_writer.scores_writer(score)
 
         # Write third party metadata
         third_party_writer(tp)
+        ecosystem_writer.third_party_writer(tp)
 
         # Finalize each writer (fix width, ETC)
         findings_writer.finalizer()
@@ -200,6 +217,10 @@ def map_analytics(excel_template_name, report_template_name, reports_from, excel
             process_excel_template(excel_filename, metadata=tp, debug=debug)
         else:
             create_report(excel_filename, report_template_name, f"{output_filename}.docx", metadata=tp, debug=debug)
+
+        ecosystem_writer.process_excel(excel_filename, company_name)
+
+    ecosystem_writer.finalizer()
 
 
 @click.command()
