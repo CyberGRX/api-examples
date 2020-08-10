@@ -15,6 +15,7 @@ from pytz import UTC
 
 YESTERDAY = (datetime.datetime.utcnow().replace(tzinfo=UTC) - datetime.timedelta(days=1)).isoformat()
 
+MAPPED_CONTROLS_TABLE = "Mapped Controls"
 CONTROL_SCORES = "Answers"
 COMPANY_TAGS = "Company Tags"
 GAPS_TABLE = "Control Gaps (Findings)"

@@ -30,6 +30,7 @@ from config import (
     TAG_COLUMNS,
     GAPS_SUMMARY,
     THIRD_PARTY_TABLE,
+    MAPPED_CONTROLS_TABLE,
 )
 from ecosystem_utils import init_ecosystem_writer
 from excel_utils import process_excel_template
@@ -44,8 +45,12 @@ from utils import sheet_writer, control_search, create_sheet
 def init_workbook(filename):
     wb = load_workbook(filename=filename)
 
-    main = next((s for _, s in enumerate(wb)))
-    main.title = "Mapped Controls"
+    try:
+        main = wb[MAPPED_CONTROLS_TABLE]
+    except KeyError:
+        main = next((s for _, s in enumerate(wb)))
+        main.title = MAPPED_CONTROLS_TABLE
+
     insert_controls = set()
     for row in main:
         insert_controls.update(control_search({idx: col for idx, col in enumerate(row)}))
@@ -213,7 +218,7 @@ def map_analytics(excel_template_name, report_template_name, reports_from, ecosy
         else:
             create_report(excel_filename, report_template_name, f"{output_filename}.docx", metadata=tp, debug=debug)
 
-        ecosystem_writer.procecss_excel(excel_filename, company_name)
+        ecosystem_writer.process_excel(excel_filename, company_name)
 
     ecosystem_writer.finalizer()
 

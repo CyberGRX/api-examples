@@ -18,6 +18,7 @@ from config import (
     SCORE_COLUMNS,
     SCORE_MAPPING,
     TAG_COLUMNS,
+    MAPPED_CONTROLS_TABLE,
     THIRD_PARTY_TABLE,
     RESIDUAL_RISK_TABLE,
     RESIDUAL_RISK_COLUMNS,
@@ -29,29 +30,25 @@ from utils import sheet_writer, create_sheet, cell_value
 
 
 def read_ecosystem_template(wb):
-    sheet = next((s for _, s in enumerate(wb)))
-
-    title = sheet.title
-    if title == "Sheet1":
-        title = "Mapped Controls"
-        sheet.title = title
+    try:
+        sheet = wb[MAPPED_CONTROLS_TABLE]
+    except KeyError:
+        sheet = next((s for _, s in enumerate(wb)))
+        sheet.title = MAPPED_CONTROLS_TABLE
 
     mapping = {}
     for idx, header in enumerate(next(sheet.iter_rows())):
         mapping[snakecase(cell_value(header).lower())] = idx + 1
 
     if "company_name" not in mapping:
-        raise Exception(f"There is no Company Name column in {title}")
+        raise Exception(f"There is no Company Name column in {MAPPED_CONTROLS_TABLE}")
 
     row_idx = 2
 
     def process_excel(excel_filename, company_name):
         nonlocal row_idx
         source_wb = load_workbook(excel_filename)
-        try:
-            source_sheet = source_wb[title]
-        except:
-            source_sheet = source_wb["Mapped Controls"]
+        source_sheet = source_wb[MAPPED_CONTROLS_TABLE]
 
         rowiterator = iter(source_sheet.rows)
         source_mapping = {}
@@ -75,7 +72,7 @@ def init_ecosystem_writer(ecosystem_template):
                 "findings_writer": lambda finding: False,
                 "scores_writer": lambda score: False,
                 "third_party_writer": lambda tp: False,
-                "procecss_excel": lambda excel_filename, company_name: False,
+                "process_excel": lambda excel_filename, company_name: False,
                 "finalizer": lambda: False,
             }
         )
@@ -119,7 +116,7 @@ def init_ecosystem_writer(ecosystem_template):
             "findings_writer": lambda finding: findings_writer(finding),
             "scores_writer": lambda score: scores_writer(score),
             "third_party_writer": process_third_party,
-            "procecss_excel": process_excel,
+            "process_excel": process_excel,
             "finalizer": finalizer,
         }
     )
