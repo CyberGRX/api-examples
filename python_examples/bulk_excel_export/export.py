@@ -20,6 +20,7 @@ THIRD_PARTY_TABLE = "Third Parties"
 GAPS_TABLE = "Control Gaps (Findings)"
 CONTROL_SCORES = "Control Scores"
 COMPANY_TAGS = "Company Tags"
+RESIDUAL_RISK_TABLE = "Residual Risk"
 
 TP_COLUMNS = [
     ["Company Name", "name", "blue"],
@@ -89,6 +90,15 @@ TAG_COLUMNS = [
     ["Tag", "tag"],
 ]
 
+RESIDUAL_RISK_COLUMNS = [
+    ["Company Name", "company_name", "blue"],
+    ["Category", "category"],
+    ["Inherent Risk", "inherent_risk_label", "orange"],
+    ["Inherent Risk Level", "inherent_risk_level", "orange"],
+    ["Residual Risk", "residual_risk_label", "orange"],
+    ["Residual Risk Level", "residual_risk_level", "orange"],
+]
+
 
 def retrieve_ecosystem():
     api = os.environ.get("CYBERGRX_BULK_API", "https://api.cybergrx.com").rstrip("/")
@@ -108,11 +118,13 @@ def retrieve_ecosystem():
     wb.create_sheet(GAPS_TABLE)
     wb.create_sheet(CONTROL_SCORES)
     wb.create_sheet(COMPANY_TAGS)
+    wb.create_sheet(RESIDUAL_RISK_TABLE)
 
     third_party_writer = sheet_writer(wb, THIRD_PARTY_TABLE, TP_COLUMNS, mapping=TP_MAPPING)
     findings_writer = sheet_writer(wb, GAPS_TABLE, GAPS_COLUMNS)
     scores_writer = sheet_writer(wb, CONTROL_SCORES, SCORE_COLUMNS, mapping=SCORE_MAPPING)
     tags_writer = sheet_writer(wb, COMPANY_TAGS, TAG_COLUMNS)
+    residual_risk_writer = sheet_writer(wb, RESIDUAL_RISK_TABLE, RESIDUAL_RISK_COLUMNS)
 
     for tp in tqdm(result, total=len(result), desc="Third Party"):
         third_party_writer(tp)
@@ -127,11 +139,16 @@ def retrieve_ecosystem():
             score["company_name"] = tp["name"]
             scores_writer(score)
 
+        for outcome in glom(tp, Coalesce("residual_risk.residual_risk_outcomes", default=[])):
+            outcome["company_name"] = tp["name"]
+            residual_risk_writer(outcome)
+
     # Finalize each writer (fix width, ETC)
     third_party_writer.finalizer()
     findings_writer.finalizer()
     scores_writer.finalizer()
     tags_writer.finalizer()
+    residual_risk_writer.finalizer()
     wb.save("ecosystem.xlsx")
 
 
