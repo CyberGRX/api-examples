@@ -15,6 +15,7 @@ from openpyxl.cell import Cell, MergedCell
 from openpyxl.styles import PatternFill
 from openpyxl.styles import colors
 from openpyxl.styles.fills import FILL_SOLID
+from openpyxl.utils.exceptions import IllegalCharacterError
 
 _VLOOKUP_REGEX = re.compile(r'.*?VLOOKUP\("(?P<control>\d+\.\d+\.\d+\.\d+).*?".*')
 
@@ -69,7 +70,11 @@ def sheet_writer(wb, name, columns, mapping=None, insert_controls=None):
 
         def write_value(_row, _col, _val):
             cell = sheet.cell(row=_row, column=_col)
-            cell.value = _val
+            try:
+                cell.value = _val
+            except IllegalCharacterError:
+                print(f"Unable to store {_val} it contained an illegal character.")
+                cell.value = ""
 
         row = 2
         encountered = set()
