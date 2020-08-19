@@ -15,6 +15,7 @@ from openpyxl import Workbook
 from openpyxl.styles.fills import FILL_SOLID
 from openpyxl.styles import Color, PatternFill, Font, Border, Side
 from openpyxl.styles import colors
+from openpyxl.utils.exceptions import IllegalCharacterError
 from openpyxl.cell import Cell
 from tqdm import tqdm
 from glom import glom
@@ -65,7 +66,11 @@ def sheet_writer(wb, name, columns, mapping=None):
 
         def write_value(_row, _col, _val):
             cell = sheet.cell(row=_row, column=_col)
-            cell.value = _val
+            try:
+                cell.value = _val
+            except IllegalCharacterError:
+                print(f"Unable to store {_val} it contained an illegal character.")
+                cell.value = ""
 
         __non_local = {"row": 2}
 
