@@ -17,7 +17,7 @@ from openpyxl.styles import colors
 from openpyxl.styles.fills import FILL_SOLID
 from openpyxl.utils.exceptions import IllegalCharacterError
 
-_VLOOKUP_REGEX = re.compile(r'.*?VLOOKUP\("(?P<control>\d+\.\d+\.\d+\.\d+).*?".*')
+_VLOOKUP_REGEX = re.compile(r'.*?VLOOKUP\("(?P<control>\d+\.\d+\.\d+\.\d+|[A-Z]{1,3}\.\d+\.\d+\.\d+).*?".*')
 
 
 def create_sheet(wb, sheet_name):
