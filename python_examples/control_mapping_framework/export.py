@@ -184,7 +184,7 @@ def map_analytics(excel_template_name, report_template_name, reports_from, ecosy
         tp.update(glom(tp, Coalesce(GAPS_SUMMARY, default={})))
 
         if glom(tp, Coalesce("subscription.is_validated", default=False)):
-            all_missing = False
+            all_missing = True
             for score in scores:
                 if glom(score, (Coalesce("validation_state", default=None), validation_label)) != "Not Reviewed":
                     all_missing = False
