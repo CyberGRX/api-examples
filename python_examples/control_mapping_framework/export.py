@@ -31,6 +31,7 @@ from config import (
     GAPS_SUMMARY,
     THIRD_PARTY_TABLE,
     MAPPED_CONTROLS_TABLE,
+    validation_label,
 )
 from ecosystem_utils import init_ecosystem_writer
 from excel_utils import process_excel_template
@@ -181,6 +182,17 @@ def map_analytics(excel_template_name, report_template_name, reports_from, ecosy
 
         # Inject gaps summary into the TP
         tp.update(glom(tp, Coalesce(GAPS_SUMMARY, default={})))
+
+        if glom(tp, Coalesce("subscription.is_validated", default=False)):
+            all_missing = False
+            for score in scores:
+                if glom(score, (Coalesce("validation_state", default=None), validation_label)) != "Not Reviewed":
+                    all_missing = False
+                    break
+
+            if all_missing and len(scores) > 0:
+                print(f"{company_name} had a T{tier} report, but validation_states are all Not Reviewed.")
+                continue
 
         wb, scores_writer, findings_writer, tags_writer, third_party_writer = init_workbook(excel_template_name)
 
