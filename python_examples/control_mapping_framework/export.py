@@ -166,18 +166,29 @@ def map_analytics(excel_template_name, report_template_name, reports_from, ecosy
     response = requests.get(uri, headers={"Authorization": token.strip()})
     result = json.loads(response.content.decode("utf-8"))
 
+    def write_tp_if_debug(third_party, json_file):
+        if debug:
+            with open(json_file, "w") as debug_file:
+                debug_file.write(json.dumps(third_party, indent=2))
+
     print(f"Retrieved {str(len(result))} third parties from your ecosystem, building an excel.")
     for tp in tqdm(result, total=len(result), desc="Third Party"):
         company_name = tp["name"]
         report_date = glom(tp, Coalesce("residual_risk.date", default=""))
+        output_filename = f'{re.sub("[^A-Za-z0-9 &]+", "", company_name).replace(" ", "-")}_{report_date}'
 
         scores = glom(tp, Coalesce("residual_risk.scores", default=[]))
         if not scores:
+            if debug:
+                print(f"{company_name} did not have any residual_risk scores.")
+
+            write_tp_if_debug(tp, f"{output_filename}.json")
             continue
 
         tier = glom(tp, Coalesce("residual_risk.tier", default=0))
         if tier not in [1, 2]:
             print(f"{company_name} had a T{tier} report, this tier is not supported.")
+            write_tp_if_debug(tp, f"{output_filename}.json")
             continue
 
         # Inject gaps summary into the TP
@@ -192,6 +203,7 @@ def map_analytics(excel_template_name, report_template_name, reports_from, ecosy
 
             if all_missing and len(scores) > 0:
                 print(f"{company_name} had a T{tier} report, but validation_states are all Not Reviewed.")
+                write_tp_if_debug(tp, f"{output_filename}.json")
                 continue
 
         wb, scores_writer, findings_writer, tags_writer, third_party_writer = init_workbook(excel_template_name)
@@ -221,9 +233,7 @@ def map_analytics(excel_template_name, report_template_name, reports_from, ecosy
         tags_writer.finalizer()
         third_party_writer.finalizer()
 
-        output_filename = f'{re.sub("[^A-Za-z0-9 &]+", "", company_name).replace(" ", "-")}_{report_date}'
         excel_filename = f"{output_filename}.xlsx"
-
         finalize_workbook(wb, excel_filename, debug=debug)
         if excel_report:
             process_excel_template(excel_filename, metadata=tp, debug=debug)
