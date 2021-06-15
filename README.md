@@ -5,7 +5,7 @@ This is a general purpose set of examples for the [CyberGRX API](https://api.cyb
 **Notes:**
 - The CyberGRX API and Bulk API are versioned and will maintain backwards compatibility.
 - You will need to pass a valid API token in the `Authorization` header to gain access to the CyberGRX API.
-  - The [How To Guide](./HOW-TO.md) describes how to accomplish this.
+  - The [How To Guide](./HOW-TO.md) describes how to retrieve a token and use it in Swagger(public API).
 - The CyberGRX API is self documenting using the formal API Swagger specification:
   - [CyberGRX API](https://api.cybergrx.com/v1/swagger/) allows data retrieval via standard pagination.
   - [CyberGRX Bulk API](https://api.cybergrx.com/bulk-v1/swagger/) allows bulk data retrieval with a single request.
