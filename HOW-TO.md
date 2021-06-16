@@ -6,7 +6,7 @@ The workflow is pretty simple:
  - Click the tab to `Access Tokens`
  - Click the button to `Add a new token`
  - Accept the promt creating a token.
- - Click `view the secret` the secret and copy it, this is the only time that this token will be available over the API!
+ - Click `view the secret` to view the secret and then copy it, this is the only time that this token will be available over the API!
  - Close the dialog and save your token in a secure location.
 
  ## CyberGRX Management Workflow
