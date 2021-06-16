@@ -35,9 +35,7 @@ The workflow is pretty simple:
 
 ### You can access data from different namespace.
 
-https://api-version-1.`<namespace>`.new-staging.grx-dev.com/v1/swagger/#/
-
-eg: https://api-version-1.master.new-staging.grx-dev.com/v1/swagger/#/
+https://api.cybergrx.com/v1/swagger/
 
 ##
 ## How
@@ -54,7 +52,7 @@ eg: https://api-version-1.master.new-staging.grx-dev.com/v1/swagger/#/
 ![try-it-out]
 ![execute]
 
-[Log-in-swagger]: /how-to/log-in-swagger.png "Click `Authorize` on the page "
+[log-in-swagger]: /how-to/log-in-swagger.png "Click `Authorize` on the page "
 [paste-api-secret]: /how-to/paste-api-secret.png "Paste the secret that you saved when creating the token, then click `Authorize`, then close the panel. "
 [try-it-out]: /how-to/try-it-out.png "Pick the API you want to use. Click `Try it out` "
 [execute]: /how-to/execute.png "Fill any fields that you want for parameters, then click `Execute` "
