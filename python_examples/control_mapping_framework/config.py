@@ -26,6 +26,8 @@ VALIDATION_LABELS = {
     "FullyValidated": "Fully Validated",
     "PartiallyValidated": "Partially Validated",
     "NotValidated": "Not Validated",
+    # Map Pending Validation to Pending Validation Review
+    "PendingValidation": "Pending Validation Review",
     # Map the remaining states into the Not Reviewed bucket
     "PendingReview": "Not Reviewed",
     "NotSelectedForValidation": "Not Reviewed",

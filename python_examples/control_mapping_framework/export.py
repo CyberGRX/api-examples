@@ -212,7 +212,7 @@ def map_analytics(excel_template_name, report_template_name, reports_from, ecosy
 
                 # Mark all validation state as Not Reviewed
                 for score in scores:
-                    score["validation_state"] = "Validation In Progress"
+                    score["validation_state"] = "PendingValidation"
 
         wb, scores_writer, findings_writer, tags_writer, third_party_writer = init_workbook(excel_template_name)
 
