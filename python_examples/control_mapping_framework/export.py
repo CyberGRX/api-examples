@@ -202,9 +202,14 @@ def map_analytics(excel_template_name, report_template_name, reports_from, ecosy
                     break
 
             if all_missing and len(scores) > 0:
-                print(f"{company_name} had a T{tier} report, but validation_states are all Not Reviewed.")
-                write_tp_if_debug(tp, f"{output_filename}.json")
-                continue
+                print(
+                    f"{company_name} had a T{tier} report, but validation_states are all Not Reviewed, marking file output as pending validation"
+                )
+                output_filename = f"{output_filename}_pending_validation"
+
+                # Mark all validation state as Not Reviewed
+                for score in scores:
+                    score["validation_state"] = "Not Reviewed"
 
         wb, scores_writer, findings_writer, tags_writer, third_party_writer = init_workbook(excel_template_name)
 
