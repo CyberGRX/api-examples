@@ -187,9 +187,12 @@ def map_analytics(excel_template_name, report_template_name, reports_from, ecosy
 
         tier = glom(tp, Coalesce("residual_risk.tier", default=0))
         if tier not in [1, 2]:
-            print(f"{company_name} had a T{tier} report, this tier is not supported.")
-            write_tp_if_debug(tp, f"{output_filename}.json")
-            continue
+            print(
+                f"{company_name} had a T{tier} report, this tier is not supported for mapping, SubControls will be Not Answered."
+            )
+
+        # Inject tier into file name
+        output_filename = f"{output_filename}_tier_{tier}"
 
         # Inject gaps summary into the TP
         tp.update(glom(tp, Coalesce(GAPS_SUMMARY, default={})))
