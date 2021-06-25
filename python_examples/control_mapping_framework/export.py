@@ -192,7 +192,7 @@ def map_analytics(excel_template_name, report_template_name, reports_from, ecosy
             )
 
         # Inject tier into file name
-        output_filename = f"{output_filename}_tier_{tier}"
+        output_filename = f"{output_filename}_tier{tier}"
 
         # Inject gaps summary into the TP
         tp.update(glom(tp, Coalesce(GAPS_SUMMARY, default={})))
@@ -212,7 +212,7 @@ def map_analytics(excel_template_name, report_template_name, reports_from, ecosy
 
                 # Mark all validation state as Not Reviewed
                 for score in scores:
-                    score["validation_state"] = "Not Reviewed"
+                    score["validation_state"] = "Validation In Progress"
 
         wb, scores_writer, findings_writer, tags_writer, third_party_writer = init_workbook(excel_template_name)
 
