@@ -49,7 +49,7 @@ def submit_orders(sheet, filename):
 
         try:
             result = glom(json.loads(response.content.decode("utf-8")), "items", default=None)
-        except:
+        except Exception:
             result = None
 
         if not result:
