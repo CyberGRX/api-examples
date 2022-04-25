@@ -51,7 +51,7 @@ def process_companies(sheet, header_mapping, normalization):
                 if col.value is not None:
                     try:
                         company[headers[column_index]] = bytearray(col.value, "utf-8").decode("utf-8")
-                    except:
+                    except Exception:
                         company[headers[column_index]] = col.value
 
             company = glom(company, normalization, default=None)
