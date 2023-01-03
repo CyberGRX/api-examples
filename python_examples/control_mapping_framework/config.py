@@ -26,6 +26,8 @@ VALIDATION_LABELS = {
     "FullyValidated": "Fully Validated",
     "PartiallyValidated": "Partially Validated",
     "NotValidated": "Not Validated",
+    # Map Pending Validation to Pending Validation Review
+    "PendingValidation": "Pending Validation Review",
     # Map the remaining states into the Not Reviewed bucket
     "PendingReview": "Not Reviewed",
     "NotSelectedForValidation": "Not Reviewed",
@@ -47,6 +49,7 @@ TP_COLUMNS = [
     ["Likelihood Value", "likelihood_score", "orange"],
     ["Impact", "impact_label", "orange"],
     ["Impact Value", "impact_score", "orange"],
+    ["Assessment Tier", "assessment_tier"],
     ["Assessment State", "assessment_status"],
     ["Assessment Progress", "assessment_progress"],
     ["Requested Completion Date", "assessment_requested_completion_date"],
@@ -64,6 +67,7 @@ TP_MAPPING = {
     "likelihood_score": Coalesce("inherent_risk.likelihood_score", default=None),
     "impact_label": Coalesce("inherent_risk.impact_label", default=None),
     "impact_score": Coalesce("inherent_risk.impact_score", default=None),
+    "assessment_tier": Coalesce("assessment.tier", default=None),
     "assessment_status": Coalesce("assessment.status", default=None),
     "assessment_progress": Coalesce("assessment.progress", default=None),
     "assessment_requested_completion_date": Coalesce("assessment.requested_completion_date", default=None),

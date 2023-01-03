@@ -187,9 +187,12 @@ def map_analytics(excel_template_name, report_template_name, reports_from, ecosy
 
         tier = glom(tp, Coalesce("residual_risk.tier", default=0))
         if tier not in [1, 2]:
-            print(f"{company_name} had a T{tier} report, this tier is not supported.")
-            write_tp_if_debug(tp, f"{output_filename}.json")
-            continue
+            print(
+                f"{company_name} had a T{tier} report, this tier is not supported for mapping, SubControls will be Not Answered."
+            )
+
+        # Inject tier into file name
+        output_filename = f"{output_filename}_tier{tier}"
 
         # Inject gaps summary into the TP
         tp.update(glom(tp, Coalesce(GAPS_SUMMARY, default={})))
@@ -202,9 +205,14 @@ def map_analytics(excel_template_name, report_template_name, reports_from, ecosy
                     break
 
             if all_missing and len(scores) > 0:
-                print(f"{company_name} had a T{tier} report, but validation_states are all Not Reviewed.")
-                write_tp_if_debug(tp, f"{output_filename}.json")
-                continue
+                print(
+                    f"{company_name} had a T{tier} report, but validation_states are all Not Reviewed, marking file output as pending validation"
+                )
+                output_filename = f"{output_filename}_pending_validation"
+
+                # Mark all validation state as Not Reviewed
+                for score in scores:
+                    score["validation_state"] = "PendingValidation"
 
         wb, scores_writer, findings_writer, tags_writer, third_party_writer = init_workbook(excel_template_name)
 
