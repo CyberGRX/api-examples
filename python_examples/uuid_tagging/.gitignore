@@ -116,3 +116,9 @@ venv.bak/
 # Token files
 .auth-token
 auth-token
+
+# raw token file 
+token_aa7123
+
+# poetry lock file
+poetry.lock
