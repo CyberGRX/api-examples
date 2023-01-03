@@ -68,8 +68,6 @@ def applyTags():
     companies = mapTags(wb)
     
     # define the api and token 
-    # api = 'https://api-version-1.develop.new-staging.grx-dev.com'
-    # token = "API-V1 JdgTu6TdQlGsVdcBuapxIw==.94zFwok+ZUxY4tyNFMv97iNb0qa3G/M8Q5FQJbyWB8Y="
     api = os.environ.get("CYBERGRX_API", "https://api-version-1.develop.new-staging.grx-dev.com").rstrip("/")
     token = os.environ.get("CYBERGRX_API_TOKEN", None)
 
