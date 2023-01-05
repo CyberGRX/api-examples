@@ -31,22 +31,19 @@
 * create your virtual environment  directory   
 2. python3 -m venv env
 
-* active you environment
-3. source env/bin/activate 
-
 * install requirements
-4. poetry install 
+3. poetry install 
 
 * source API token
-5. source .auth-token
+4. source .auth-token
 
 * execute the script
-6. python3 uuidTags.py 
+5. python3 uuidTags.py 
 
 * once complete deactivate the virtual environment
-7. deactivate
+6. deactivate
 
 * remove .auth-token
-8. rm -rf .auth-token
+7 rm -rf .auth-token
 
 - Don't forget to remove the auth-token. This is an additional protection for you. 
