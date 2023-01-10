@@ -31,7 +31,7 @@
 * create your virtual environment  directory   
 2. python3 -m venv env
 
-* active you environment
+* active your environment
 3. source env/bin/activate 
 
 * install requirements

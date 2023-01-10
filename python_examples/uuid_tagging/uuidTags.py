@@ -15,6 +15,7 @@ import os
 from glom import glom
 import requests
 from tqdm import tqdm
+from time import time 
 
 # map uuid:tags function 
 # iterate through company UUID's in excel sheet and map tags 
@@ -57,6 +58,35 @@ def mapTags(wb):
     return companyTags
 
 
+
+# function to handle timeouts when applying tags 
+# retry tagging function incase of timeout
+# response code 504 == timeout 
+def retry_tagging(id, tag, attempts_remaining=5, interval=2):
+
+    # define the api and token for requests 
+    api = os.environ.get("CYBERGRX_API", "https://api-version-1.develop.new-staging.grx-dev.com").rstrip("/")
+    # api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
+    token = os.environ.get("CYBERGRX_API_TOKEN", None)
+
+    try:
+            uri = f"{api}/v1/third-parties/{id}/tagging"
+            response = requests.post(uri, headers={"Authorization": token.strip()}, json={"tags": tag})
+            if response.status_code == 504:
+                raise Exception("Response Code 504 : timeout")
+
+    except Exception as e:
+
+        if attempts_remaining > 0:
+            time.sleep(interval)
+            retry_tagging(attempts_remaining-1, interval*2)
+
+        else:
+            # raise e
+            print(f"Company : {id} timed out. Unable to apply tags, try again.")
+
+
+
 # apply tags function
 # reads in an excel sheet, passes the sheet to a mapping function
 # gets {UUID:Tags} returned to it
@@ -68,7 +98,8 @@ def applyTags():
     companies = mapTags(wb)
     
     # define the api and token 
-    api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
+    api = os.environ.get("CYBERGRX_API", "https://api-version-1.develop.new-staging.grx-dev.com").rstrip("/")
+    # api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
     token = os.environ.get("CYBERGRX_API_TOKEN", None)
 
     # using tqdm as a decerator to display status bar 
@@ -79,16 +110,23 @@ def applyTags():
         # make a get call to verify company UUID is in portfolio
         uri = f"{api}/v1/third-parties/{uuid}"
         response = requests.get(uri, headers={"Authorization" : token.strip()})
-        # response = requests.get(uri, headers={"Authorization" : token})
+        # loading the response as a json
         result = json.loads(response.content.decode("utf-8"))
-        thirdPartyId = glom(result, "id")
         
+        # pulling 3rd party id and company name out of the response 
+        # if thirdPartyId == UUID 
+        thirdPartyId = glom(result, "id")
+        companyName = glom(result, "name")
+
         # if thirdPartyId matches current uuid, apply tags 
         if thirdPartyId == uuid:
-            print(uuid, tags)
+            print(f"CompanyID: {uuid} CompanyName: {companyName}. Tags: {tags}")
             uri = f"{api}/v1/third-parties/{uuid}/tagging"
             response = requests.post(uri, headers={"Authorization": token.strip()}, json={"tags": tags})
-            # response = requests.post(uri, headers={"Authorization": token}, json={"tags": tags})
+            # it post request times out, call recursive retry function 
+            if response.status_code == 504:
+                retry_tagging(id=uuid, tag=tags)
+            
 
         else:
             # company isn't in profile
