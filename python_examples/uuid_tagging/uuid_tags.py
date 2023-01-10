@@ -28,8 +28,8 @@ def map_tags(wb):
     company_tags = {} 
 
     # define num of columns to check for required columns(2) 
-    numColumns = wb.shape[1]
-    if numColumns != 2:
+    num_columns = wb.shape[1]
+    if num_columns != 2:
         raise Exception("Excel sheet formatted wrong! Format needs to be col1 : CompanyID, col2 : Tags")
 
     # stripping commas out of the excel sheet
@@ -112,12 +112,12 @@ def apply_tags():
         result = json.loads(response.content.decode("utf-8"))
         
         # pulling 3rd party id and company name out of the response 
-        # if thirdPartyId == UUID 
-        thirdPartyId = glom(result, "id")
+        # if third_party_id == UUID 
+        third_party_id = glom(result, "id")
         companyName = glom(result, "name")
 
-        # if thirdPartyId matches current uuid, apply tags 
-        if thirdPartyId == uuid:
+        # if third_party_id matches current uuid, apply tags 
+        if third_party_id == uuid:
             print(f"CompanyID: {uuid} CompanyName: {companyName}. Tags: {tags}")
             uri = f"{api}/v1/third-parties/{uuid}/tagging"
             response = requests.post(uri, headers={"Authorization": token.strip()}, json={"tags": tags})

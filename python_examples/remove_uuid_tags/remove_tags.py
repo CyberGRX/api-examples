@@ -28,8 +28,8 @@ def map_tags(wb):
     company_tags = {} 
 
     # define num of columns to check for required columns(2) 
-    numColumns = wb.shape[1]
-    if numColumns != 2:
+    num_columns = wb.shape[1]
+    if num_columns != 2:
         raise Exception("Excel sheet formatted wrong! Format needs to be col1 : CompanyID, col2 : Tags")
 
     # stripping commas out of the excel sheet
@@ -110,11 +110,11 @@ def remove_tags():
         get_response = requests.get(uri, headers={"Authorization" : token.strip()})
         # response = requests.get(uri, headers={"Authorization" : token})
         result = json.loads(get_response.content.decode("utf-8"))
-        thirdPartyId = glom(result, "id")
+        third_party_id = glom(result, "id")
         companyName = glom(result, "name")
 
-        # if thirdPartyId matches current uuid, apply tags 
-        if thirdPartyId == uuid:
+        # if third_party_id matches current uuid, apply tags 
+        if third_party_id == uuid:
             print(f"CompanyID: {uuid} CompanyName: {companyName}. Tags: {tags}")
             uri = f"{api}/v1/third-parties/{uuid}/tagging"
             delete_response = requests.delete(uri, headers={"Authorization": token.strip()}, json={"tags": tags})
