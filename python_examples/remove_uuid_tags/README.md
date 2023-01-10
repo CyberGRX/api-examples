@@ -41,7 +41,7 @@
 5. source .auth-token
 
 * execute the script
-6. python3 uuidTags.py 
+6. python3 removeTags.py 
 
 * once complete deactivate the virtual environment
 7. deactivate

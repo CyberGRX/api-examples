@@ -65,8 +65,7 @@ def mapTags(wb):
 def retry_tagging(id, tag, attempts_remaining=5, interval=2):
 
     # define the api and token for requests 
-    api = os.environ.get("CYBERGRX_API", "https://api-version-1.develop.new-staging.grx-dev.com").rstrip("/")
-    # api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
+    api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
     token = os.environ.get("CYBERGRX_API_TOKEN", None)
 
     try:
@@ -98,8 +97,7 @@ def applyTags():
     companies = mapTags(wb)
     
     # define the api and token 
-    api = os.environ.get("CYBERGRX_API", "https://api-version-1.develop.new-staging.grx-dev.com").rstrip("/")
-    # api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
+    api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
     token = os.environ.get("CYBERGRX_API_TOKEN", None)
 
     # using tqdm as a decerator to display status bar 
