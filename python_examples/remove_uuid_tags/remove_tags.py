@@ -20,12 +20,12 @@ from time import time
 # map uuid:tags to be removed function 
 # iterate through company UUID's in excel sheet and map tags 
 # return a dict of UUID : Tags for removal
-def mapTags(wb): 
+def map_tags(wb): 
 
     # a list to hold companies that don't have any tags
     # dict to contain UUID:tags 
-    noTags = []
-    companyTags = {} 
+    no_tags = []
+    company_tags = {} 
 
     # define num of columns to check for required columns(2) 
     numColumns = wb.shape[1]
@@ -43,19 +43,19 @@ def mapTags(wb):
         # creating an array of tags for each company
         tags = wb.iloc[i, 1].split()
         if tags == []:
-            noTags.append(uuid)
+            no_tags.append(uuid)
         else:
-            companyTags[uuid] = tags
+            company_tags[uuid] = tags
 
     # displaying company UUID's that have no tags to be applied 
-    if len(noTags) != 0:
+    if len(no_tags) != 0:
         print("These companies had no tags to apply:")
-        for id in noTags:
+        for id in no_tags:
             print(id)
         print()
 
     # returning mapped {UUID:tags} 
-    return companyTags
+    return company_tags
 
 
 
@@ -91,10 +91,10 @@ def retry_delete(id, tag, attempts_remaining=5, interval=2):
 # gets {UUID:Tags} returned to it
 # hits api to verify UUID is in portfolio 
 # removes read in tags 
-def removeTags():
+def remove_tags():
     # read in workbook. EXCEL SHEET MUST BE IN THE SAME DIR AS THIS SCRIPT
-    wb = pd.read_excel('removeTags.xlsx')
-    companies = mapTags(wb)
+    wb = pd.read_excel('remove_tags.xlsx')
+    companies = map_tags(wb)
     
     # define the api and token 
     api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
@@ -129,6 +129,6 @@ def removeTags():
 
 
 if __name__ == "__main__":
-    removeTags()
+    remove_tags()
 
 
