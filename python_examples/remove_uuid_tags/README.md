@@ -1,11 +1,11 @@
-# UUID Tagging Script 
+# Remove Tags Script 
 
 * Local system requirements:
   - poetry >= 1.3.1 
   - virtualenv >= 20.16.7 
 
-- This is an example script of how to apply tags to a company using UUID's. 
-- Ensure that uuidTags.py is in the same directory as uuidTags.xlsx and pyproject.toml
+- This is an example script of how to remove tags from a company using UUID's. 
+- Ensure that removeTags.py is in the same directory as removeTags.xlsx and pyproject.toml
 - All commands should be executed from this directory 
 
 
@@ -31,8 +31,8 @@
 * create your virtual environment  directory   
 2. python3 -m venv env
 
-* active your environment
-3. source env/bin/activate 
+* activate your environment
+3. source env/bin/activate
 
 * install requirements
 4. poetry install 
@@ -41,7 +41,7 @@
 5. source .auth-token
 
 * execute the script
-6. python3 uuidTags.py 
+6. python3 removeTags.py 
 
 * once complete deactivate the virtual environment
 7. deactivate

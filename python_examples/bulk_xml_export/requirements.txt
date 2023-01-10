@@ -1,6 +1,0 @@
--e .
-
-requests==2.20.0
-dicttoxml==1.7.4
-glom==18.1.1
-tqdm==4.19.8

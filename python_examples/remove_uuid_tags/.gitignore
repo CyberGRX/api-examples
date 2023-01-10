@@ -110,12 +110,11 @@ venv.bak/
 .DS_Store
 .vscode
 
-# XML files
-*.xml
-
-# JSON files
-*.json
+# Temporary Excel files
+~$*.xlsx
 
 # Token files
 .auth-token
 auth-token
+
+

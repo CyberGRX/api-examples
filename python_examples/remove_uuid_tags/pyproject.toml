@@ -1,0 +1,13 @@
+[tool.poetry]
+name = "uuidTagging"
+version = "0.1.0"
+description = "Apply company tags using UUID's"
+authors = ["James Sullivan james.sullivan@cybergrx.com"]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+pandas = "^1.5.0"
+glom = "^22.1.0"
+requests = "^2.28.1"
+tqdm = "^4.64.1"
+openpyxl = "^3.0.10"
