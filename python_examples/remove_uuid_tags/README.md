@@ -12,10 +12,10 @@
 
 - In your portfolio click in the top right corner and under settings select Manage Access Tokens 
 - Once you generate a token make sure that you view the secret it should look something like this 
-  `API-V1 xxxxxxxxxxxxxxxxxxxxxx==.xxxxxxx+xxxxxxxxxxxxxxxxxxxxx/xxxxxxxxxxxxxx="`
+  `API-V1 xxxxxxxxxxxxxxxxxxxxxx==.xxxxxxx+xxxxxxxxxxxxxxxxxxxxx/xxxxxxxxxxxxxx=`
 - Using a text editor of your choice create a `.auth-token` file
 - Inside the `.auth-token` file take your token secret and add:
-  `export CYBERGRX_API_TOKEN="API-V1 xxxxxxxxxxxxxxxxxxxxxx==.xxxxxxx+xxxxxxxxxxxxxxxxxxxxx/xxxxxxxxxxxxxx="`
+  `export CYBERGRX_API_TOKEN=API-V1 xxxxxxxxxxxxxxxxxxxxxx==.xxxxxxx+xxxxxxxxxxxxxxxxxxxxx/xxxxxxxxxxxxxx=`
 - You have now created your auth-token to source in your environment
 
 
