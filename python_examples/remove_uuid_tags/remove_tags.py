@@ -65,8 +65,11 @@ def map_tags(wb):
 def retry_delete(id, tag, attempts_remaining=5, interval=2):
 
     # define the api and token for requests 
-    api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
+    api = os.environ.get("CYBERGRX_API", "https://api-version-1.develop.new-staging.grx-dev.com").rstrip("/")
+    # api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
     token = os.environ.get("CYBERGRX_API_TOKEN", None)
+    if not token:
+            raise Exception("The environment variable CYBERGRX_API_TOKEN must be set")
 
     try:
             uri = f"{api}/v1/third-parties/{id}/tagging"
@@ -97,8 +100,11 @@ def remove_tags():
     companies = map_tags(wb)
     
     # define the api and token 
-    api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
+    api = os.environ.get("CYBERGRX_API", "https://api-version-1.develop.new-staging.grx-dev.com").rstrip("/")
+    # api = os.environ.get("CYBERGRX_API", "https://api.cybergrx.com").rstrip("/")
     token = os.environ.get("CYBERGRX_API_TOKEN", None)
+    if not token:
+            raise Exception("The environment variable CYBERGRX_API_TOKEN must be set")
 
     # using tqdm as a decerator to display status bar 
     # you don't have to use this, but it's nice to know how many tags are left

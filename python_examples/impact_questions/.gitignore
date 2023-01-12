@@ -111,8 +111,10 @@ venv.bak/
 .vscode
 
 # Temporary Excel files
-*.xlsx
+~$*.xlsx
 
 # Token files
 .auth-token
 auth-token
+
+
