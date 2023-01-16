@@ -31,10 +31,20 @@ def map_tags(wb):
     if num_columns != 9:
         raise Exception("Excel sheet formatted wrong! Check to make sure that the columns contain company UUID and the 8 scoping questions!")
 
+
+    for i in range(wb.shape[0]):
+        tmp = wb.iloc[1, i]
+        # print(tmp)
+        # print(type(tmp))
+        # tmp2 = tmp.to_dict()
+        # tmp2 = wb.iloc[:, 1].to_dict()
+        tmp2 = tmp.to_dict()
+        print(tmp2)
+        # company_uuid = wb.iloc[0]
+        
     
+        
 
-
-    print(wb.loc[3])
 
     # define num of columns to check for required columns(2) 
     # num_columns = wb.shape[1]
