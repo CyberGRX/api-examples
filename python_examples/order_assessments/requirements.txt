@@ -1,7 +1,7 @@
 -e .
 
 click==7.0
-requests==2.20.0
+requests==2.31.0
 openpyxl==2.6.2
 glom==18.3.0
 stringcase==1.2.0
